@@ -11,6 +11,14 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        duckracer.cpp
+        duckracer.cpp \
+    dlgconfigure.cpp \
+    wdgscan.cpp \
+    wdgprizes.cpp \
+    wdglabels.cpp
 
-HEADERS  += duckracer.h
+HEADERS  += duckracer.h \
+    dlgconfigure.h \
+    wdgscan.h \
+    wdgprizes.h \
+    wdglabels.h
