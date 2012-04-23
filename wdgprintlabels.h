@@ -3,11 +3,11 @@
 
 #include <QtGui>
 
-class wdgLabels : public QWidget
+class wdgPrintLabels : public QWidget
 {
     Q_OBJECT
 public:
-    explicit wdgLabels(QWidget *parent = 0);
+    explicit wdgPrintLabels(QWidget *parent = 0);
     
 signals:
     

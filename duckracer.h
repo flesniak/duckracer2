@@ -3,9 +3,10 @@
 
 #include <QtGui>
 
-class wdgLabels;
 class wdgPrizes;
 class wdgScan;
+class wdgPrintLabels;
+class wdgPrintLists;
 
 class duckracer : public QMainWindow
 {
@@ -18,17 +19,33 @@ public slots:
     void openScan();
     void openManagePrizes();
     void openPrintLabels();
+    void openPrintLists();
+    QString getPrizeListFileName(bool needed = true);
+    QString getScanFileName();
 
 private:
     QTabWidget *tabWidget;
-    wdgLabels *widgetLabels;
+    QLabel *labelPrizeListFileName;
+    QLabel *labelScanFileName;
+    QAction *actionCloseScanFile;
+    QAction *actionClosePrizeFile;
     wdgPrizes *widgetPrizes;
     wdgScan *widgetScan;
+    wdgPrintLabels *widgetPrintLabels;
+    wdgPrintLists *widgetPrintLists;
+
+    QString prizeListFileName;
+    QString scanFileName;
 
 private slots:
     void processConfigure();
     void processQuit();
     void processCloseTab(int index);
+    void processOpenPrizeFile();
+    void processOpenScanFile();
+    void processClosePrizeFile();
+    void processCloseScanFile();
+    void updateFileNameLabels();
 };
 
 #endif // DUCKRACER_H

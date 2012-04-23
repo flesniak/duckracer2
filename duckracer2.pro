@@ -15,10 +15,14 @@ SOURCES += main.cpp\
     dlgconfigure.cpp \
     wdgscan.cpp \
     wdgprizes.cpp \
-    wdglabels.cpp
+    wdgprintlists.cpp \
+    wdgprintlabels.cpp \
+    prizelistmodel.cpp
 
 HEADERS  += duckracer.h \
     dlgconfigure.h \
     wdgscan.h \
     wdgprizes.h \
-    wdglabels.h
+    wdgprintlists.h \
+    wdgprintlabels.h \
+    prizelistmodel.h

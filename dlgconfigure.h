@@ -11,6 +11,7 @@ public:
 
 private:
     QComboBox *comboBoxSerialPort;
+    QComboBox *comboBoxBaudRate;
 
     void loadConfig();
     void saveConfig();
