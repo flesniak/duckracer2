@@ -12,6 +12,9 @@ public:
 private:
     QComboBox *comboBoxSerialPort;
     QComboBox *comboBoxBaudRate;
+    QLineEdit *lineEditBarcodePath;
+    QLineEdit *lineEditBarcodeContPath;
+    QSpinBox *spinBoxLabelSet;
 
     void loadConfig();
     void saveConfig();
@@ -19,6 +22,9 @@ private:
 private slots:
     void processOK();
     void collectSerialPorts();
+    void updateContPath();
+    void processSelectBarcodePath();
+    void processSelectBarcodeContPath();
 };
 
 #endif // DLGCONFIGURE_H

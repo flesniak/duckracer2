@@ -28,15 +28,45 @@ dlgConfigure::dlgConfigure(QWidget *parent) : QDialog(parent)
     layoutGrpConfSerial->addWidget(comboBoxBaudRate,1,1);
     layoutGrpConfSerial->addWidget(buttonReloadPorts,2,1);
 
+    QGroupBox *grpConfBarcode = new QGroupBox(tr("Drucker-Steuerdateien"),this);
+    QLabel *labelBarcode = new QLabel(trUtf8("Pfad zur Barcode-Datei"),grpConfBarcode);
+    QLabel *labelBarcodeCont = new QLabel(trUtf8("Pfad zur Barcode-Continue-Datei"),grpConfBarcode);
+    QPushButton *buttonBarcodePath = new QPushButton(QIcon::fromTheme("folder"),QString(),grpConfBarcode);
+    QPushButton *buttonBarcodeContPath = new QPushButton(QIcon::fromTheme("folder"),QString(),grpConfBarcode);
+    lineEditBarcodePath = new QLineEdit(grpConfBarcode);
+    lineEditBarcodeContPath = new QLineEdit(grpConfBarcode);
+    QLabel *labelLabelSet = new QLabel(trUtf8("Größe eines Satzes Etiketten für Vorauswahl"),grpConfBarcode);
+    spinBoxLabelSet = new QSpinBox(grpConfBarcode);
+    spinBoxLabelSet->setRange(10,10000);
+    spinBoxLabelSet->setValue(500);
+
+    QHBoxLayout *layoutLabelSet = new QHBoxLayout;
+    layoutLabelSet->addWidget(labelLabelSet);
+    layoutLabelSet->addWidget(spinBoxLabelSet);
+
+    QGridLayout *layoutGrpConfBarcode = new QGridLayout(grpConfBarcode);
+    layoutGrpConfBarcode->addWidget(labelBarcode,0,0,1,2);
+    layoutGrpConfBarcode->addWidget(buttonBarcodePath,1,0);
+    layoutGrpConfBarcode->addWidget(lineEditBarcodePath,1,1);
+    layoutGrpConfBarcode->addWidget(labelBarcodeCont,2,0,1,2);
+    layoutGrpConfBarcode->addWidget(buttonBarcodeContPath,3,0);
+    layoutGrpConfBarcode->addWidget(lineEditBarcodeContPath,3,1);
+    layoutGrpConfBarcode->addLayout(layoutLabelSet,4,0,1,2);
+    layoutGrpConfBarcode->setColumnStretch(1,1);
+
     QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,Qt::Horizontal,this);
 
     QGridLayout *layout = new QGridLayout(this);
     layout->addWidget(grpConfSerial,0,0);
-    layout->addWidget(buttonBox,1,0);
+    layout->addWidget(grpConfBarcode,0,1);
+    layout->addWidget(buttonBox,1,0,1,2);
 
     connect(buttonBox,SIGNAL(accepted()),SLOT(processOK()));
     connect(buttonBox,SIGNAL(rejected()),SLOT(reject()));
     connect(buttonReloadPorts,SIGNAL(clicked()),SLOT(collectSerialPorts()));
+    connect(buttonBarcodePath,SIGNAL(clicked()),SLOT(processSelectBarcodePath()));
+    connect(buttonBarcodeContPath,SIGNAL(clicked()),SLOT(processSelectBarcodeContPath()));
+    connect(lineEditBarcodePath,SIGNAL(textChanged(QString)),SLOT(updateContPath()));
 
     loadConfig();
 }
@@ -62,6 +92,9 @@ void dlgConfigure::loadConfig()
     int baudRateIndex = comboBoxBaudRate->findText(settings.value("serial/baudrate").toString());
     if( baudRateIndex >= 0 )
         comboBoxBaudRate->setCurrentIndex(baudRateIndex);
+    lineEditBarcodePath->setText(settings.value("barcode/path").toString());
+    lineEditBarcodeContPath->setText(settings.value("barcode/contpath").toString());
+    spinBoxLabelSet->setValue(settings.value("barcode/setsize",500).toInt());
 }
 
 void dlgConfigure::saveConfig()
@@ -69,6 +102,9 @@ void dlgConfigure::saveConfig()
     QSettings settings;
     settings.setValue("serial/port",comboBoxSerialPort->currentText());
     settings.setValue("serial/baudrate",comboBoxBaudRate->currentText());
+    settings.setValue("barcode/path",lineEditBarcodePath->text());
+    settings.setValue("barcode/contpath",lineEditBarcodeContPath->text());
+    settings.setValue("barcode/setsize",spinBoxLabelSet->value());
 }
 
 void dlgConfigure::collectSerialPorts()
@@ -80,4 +116,41 @@ void dlgConfigure::collectSerialPorts()
     dirDev.setNameFilters(dirFilters);
     dirDev.setFilter(QDir::Readable | QDir::Files | QDir::Drives | QDir::System);
     comboBoxSerialPort->addItems(dirDev.entryList());
+}
+
+void dlgConfigure::processSelectBarcodePath()
+{
+    QSettings settings;
+    QString barcodePath = QFileDialog::getOpenFileName(this,trUtf8("Barcode-Datei öffnen"),settings.value("barcode/lastdirectory",QDir::homePath()).toString(),trUtf8("Barcode-Dateien (*.bar)"));
+    if( !barcodePath.isEmpty() ) {
+        settings.setValue("barcode/lastdirectory",QFileInfo(barcodePath).path());
+        lineEditBarcodePath->setText(barcodePath);
+    }
+}
+
+void dlgConfigure::processSelectBarcodeContPath()
+{
+    QSettings settings;
+    QString barcodePath = QFileDialog::getOpenFileName(this,trUtf8("Barcode-Cont-Datei öffnen"),settings.value("barcode/lastdirectory",QDir::homePath()).toString(),trUtf8("Barcode-Dateien (*.bar)"));
+    if( !barcodePath.isEmpty() ) {
+        settings.setValue("barcode/lastdirectory",QFileInfo(barcodePath).path());
+        lineEditBarcodeContPath->setText(barcodePath);
+    }
+}
+
+void dlgConfigure::updateContPath()
+{
+    QString barcodePath = lineEditBarcodePath->text();
+    if( !QFile(barcodePath).exists() )
+        return;
+    if( barcodePath.right(4) != ".bar" )
+        return;
+    barcodePath.chop(4);
+    QStringList barcodeSuffix;
+    barcodeSuffix << "_cont.bar" << "cont.bar" << ".cont.bar" << ".contbar";
+    foreach(QString barcodeContSuffix, barcodeSuffix)
+        if( QFile(barcodePath+barcodeContSuffix).exists() ) {
+            lineEditBarcodeContPath->setText(barcodePath+barcodeContSuffix);
+            return;
+        }
 }
