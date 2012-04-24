@@ -20,7 +20,7 @@ public slots:
     void openManagePrizes();
     void openPrintLabels();
     void openPrintLists();
-    QString getPrizeListFileName(bool needed = true);
+    QString getPrizeListFileName(bool save = false); //if save is true and no file is selected, we will prompt for one
     QString getScanFileName();
 
 private:
@@ -41,10 +41,11 @@ private slots:
     void processConfigure();
     void processQuit();
     void processCloseTab(int index);
-    void processOpenPrizeFile();
-    void processOpenScanFile();
+    void processOpenPrizeFile(); //prompt for open, not save, by default
+    void processOpenScanFile(bool save = false); //prompt for open, not save, by default
     void processClosePrizeFile();
     void processCloseScanFile();
+    void checkPrizeListFileName();
     void updateFileNameLabels();
 };
 

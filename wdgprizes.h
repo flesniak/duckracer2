@@ -10,6 +10,7 @@ class wdgPrizes : public QWidget
     Q_OBJECT
 public:
     explicit wdgPrizes(QWidget *parent = 0);
+    QString currentFileName() const;
 
 public slots:
     bool updatePrizeListFileName(QString newFileName); //returns true if change was successful (i.e. not cancelled)
@@ -27,7 +28,6 @@ private:
     QString fileName;
 
     bool readFile();
-    void lock(bool b);
     bool changed;
 
 private slots:
@@ -36,10 +36,14 @@ private slots:
     void processMoveRowUp();
     void processMoveRowDown();
     void processDuplicateRow();
+    void dataChanged();
     bool saveChanges(); //returns true if changes were successfully saved
 
+protected:
+    void closeEvent(QCloseEvent *event);
+
 signals:
-    void newPrizeListFileName(QString);
+    void prizeListFileNameChanged();
 };
 
 #endif // WDGPRIZES_H

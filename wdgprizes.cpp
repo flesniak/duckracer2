@@ -13,7 +13,6 @@ wdgPrizes::wdgPrizes(QWidget *parent) : QWidget(parent), changed(false)
     tableView = new QTableView(this);
     tableView->setModel(model);
     tableView->horizontalHeader()->setStretchLastSection(true);
-    //tableView->horizontalHeader()->hide();
 
     QHBoxLayout *layoutButtonsUpper = new QHBoxLayout;
     layoutButtonsUpper->addWidget(buttonAddRow);
@@ -34,53 +33,56 @@ wdgPrizes::wdgPrizes(QWidget *parent) : QWidget(parent), changed(false)
     connect(buttonMoveRowUp,SIGNAL(clicked()),SLOT(processMoveRowUp()));
     connect(buttonMoveRowDown,SIGNAL(clicked()),SLOT(processMoveRowDown()));
     connect(buttonDuplicateRow,SIGNAL(clicked()),SLOT(processDuplicateRow()));
+
+    connect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),SLOT(dataChanged()));
+}
+
+void wdgPrizes::closeEvent(QCloseEvent *event)
+{
+    if( promptSaveChanges() )
+        event->accept();
+    else
+        event->ignore();
 }
 
 bool wdgPrizes::updatePrizeListFileName(QString newFileName)
 {
     if( promptSaveChanges() ) {
-        fileName = newFileName; //Use false to create a new file if none was selected
-        if( !fileName.isEmpty() )
-            readFile();
-        return true;
+        fileName = newFileName;
+        if( fileName.isEmpty() ) { //"Closing file" -> clearing data
+            model->clear();
+            return true;
+        }
+        else
+            return readFile();
     }
     else
-        return false;
+        return false; //promtSaveChanges failed, will stay with old file!
 }
 
 bool wdgPrizes::readFile() //returns true on success
 {
+    if( fileName.isEmpty() )
+        return false;
     QFile file(fileName);
     if( !file.open(QIODevice::ReadOnly | QIODevice::Text) ) {
         QMessageBox::critical(this,trUtf8("Fehler"),trUtf8("Datei %1 konnte nicht geöffnet werden").arg(fileName));
         model->clear();
         return false;
     }
-    QDataStream stream(&file);
+    QTextStream stream(&file);
     model->getContent()->clear();
-    QStringList test;
     while( !stream.atEnd() )
-        stream >> *(model->getContent());
+        model->getContent()->append(stream.readLine());
     file.close();
     model->newData();
     return true;
 }
 
-void wdgPrizes::lock(bool b)
-{
-    tableView->setEnabled(b);
-    buttonSaveChanges->setEnabled(b);
-    buttonAddRow->setEnabled(b);
-    buttonRemoveRow->setEnabled(b);
-    buttonMoveRowUp->setEnabled(b);
-    buttonMoveRowDown->setEnabled(b);
-    buttonDuplicateRow->setEnabled(b);
-}
-
 bool wdgPrizes::promptSaveChanges()
 {
-    if( changed ) {
-        switch(QMessageBox::question(this,tr("Daten geändert"),tr("Die Daten von %1 wurden geändert. Änderungen speichern?").arg(fileName),QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel)) {
+    if( changed )
+        switch(QMessageBox::question(this,trUtf8("Daten geändert"),trUtf8("Vorgenommen Änderungen speichern?"),QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel)) {
             case QMessageBox::Save : return saveChanges();
                                      break;
             case QMessageBox::Discard : return true;
@@ -90,7 +92,6 @@ bool wdgPrizes::promptSaveChanges()
             default : return false;
                       break;
         }
-    }
     else
         return true; //If our data didn't change, we don't need to save and are free to i.e. load a new file
 }
@@ -98,15 +99,23 @@ bool wdgPrizes::promptSaveChanges()
 bool wdgPrizes::saveChanges()
 {
     if( changed ) {
+        if( fileName.isEmpty() ) {
+            QSettings settings;
+            fileName = QFileDialog::getSaveFileName(this,trUtf8("Preisliste speichern"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),trUtf8("Preislisten (*.prz);;Textdateien (*.txt)"));
+            if( fileName.isEmpty() )
+                return false;
+            emit prizeListFileNameChanged();
+        }
         QFile file(fileName);
         if( !file.open(QIODevice::WriteOnly | QIODevice::Text) ) {
             QMessageBox::critical(this,trUtf8("Fehler"),trUtf8("Datei %1 konnte nicht zum Schreiben geöffnet werden").arg(fileName));
             return false;
         }
-        QDataStream stream(&file);
+        QTextStream stream(&file);
         foreach(QString entry, *(model->getContent()))
-            stream << entry;
+            stream << entry << endl;
         file.close();
+        changed = false;
         return true;
     }
     else
@@ -115,7 +124,8 @@ bool wdgPrizes::saveChanges()
 
 void wdgPrizes::processAddRow()
 {
-    model->insertRow(tableView->selectionModel()->selectedRows().value(0).row());
+    if( model->insertRow(tableView->selectionModel()->selectedRows().value(0).row()) )
+        changed = true;
 }
 
 void wdgPrizes::processRemoveRow()
@@ -123,24 +133,41 @@ void wdgPrizes::processRemoveRow()
     QList<QModelIndex> indexList = tableView->selectionModel()->selectedRows();
     qSort(indexList);
     for(int index = indexList.size()-1; index >= 0; index--)
-        model->removeRow(indexList.at(index).row());
+        if( model->removeRow(indexList.at(index).row()) )
+            changed = true;
+    changed = true;
 }
 
 void wdgPrizes::processMoveRowUp()
 {
     int row = tableView->selectionModel()->selectedRows().value(0).row();
-    if( model->moveRowUp(row) )
+    if( model->moveRowUp(row) ) {
         tableView->selectionModel()->select(model->index(row-1,0),QItemSelectionModel::SelectCurrent);
+        changed = true;
+    }
 }
 
 void wdgPrizes::processMoveRowDown()
 {
     int row = tableView->selectionModel()->selectedRows().value(0).row();
-    if( model->moveRowDown(row) )
+    if( model->moveRowDown(row) ) {
         tableView->selectionModel()->select(model->index(row+1,0),QItemSelectionModel::SelectCurrent);
+        changed = true;
+    }
 }
 
 void wdgPrizes::processDuplicateRow()
 {
-    model->duplicateRow(tableView->selectionModel()->selectedRows().value(0).row());
+    if( model->duplicateRow(tableView->selectionModel()->selectedRows().value(0).row()) )
+        changed = true;
+}
+
+QString wdgPrizes::currentFileName() const
+{
+    return fileName;
+}
+
+void wdgPrizes::dataChanged()
+{
+    changed = true;
 }

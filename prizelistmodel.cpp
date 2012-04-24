@@ -46,15 +46,15 @@ QVariant prizelistmodel::headerData(int section, Qt::Orientation orientation, in
 
 bool prizelistmodel::insertRows(int row, int count, const QModelIndex &parent)
 {
-    if( row < 0 )
-        row = 0;
     if( row >= content->size() || count == 0 )
         return false;
+    if( row < 0 )
+        row = 0;
     beginInsertRows(parent,row+1,row+count);
-    if( content->size() == 0 ) {
+    /*if( content->size() == 0 ) {
         content->append(QString());
         count--;
-    }
+    }*/
     for(int num = 0; num < count; num++)
         content->insert(row+1,QString());
     endInsertRows();
@@ -70,7 +70,7 @@ bool prizelistmodel::removeRows(int row, int count, const QModelIndex &parent)
         content->removeAt(row);
     endRemoveRows();
     if( content->isEmpty() )
-        insertRow(0);
+        insertRow(-1);
     return true;
 }
 
@@ -84,7 +84,9 @@ void prizelistmodel::clear()
 
 void prizelistmodel::newData()
 {
-    emit dataChanged(createIndex(0,0),createIndex(content->size()-1,0));
+    beginResetModel();
+    endResetModel();
+    //emit dataChanged(createIndex(0,0),createIndex(content->size()-1,0));
 }
 
 bool prizelistmodel::moveRowDown(int row)

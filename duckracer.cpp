@@ -125,15 +125,18 @@ void duckracer::processCloseTab(int index)
     if( index == 0 )
         return;
     QWidget *closeWidget = tabWidget->widget(index);
-    tabWidget->removeTab(index);
     if( closeWidget == widgetPrintLabels )
         widgetPrintLabels = 0;
-    if( closeWidget == widgetPrizes )
+    if( closeWidget == widgetPrizes ) {
+        if(!widgetPrizes->close())
+            return;
         widgetPrizes = 0;
+    }
     if( closeWidget == widgetScan )
         widgetScan = 0;
     if( closeWidget == widgetPrintLists )
         widgetPrintLists = 0;
+    tabWidget->removeTab(index);
     delete closeWidget;
 }
 
@@ -154,6 +157,7 @@ void duckracer::openManagePrizes()
         widgetPrizes = new wdgPrizes(tabWidget);
         tabWidget->addTab(widgetPrizes,trUtf8("Preisliste verwalten"));
         tabWidget->setCurrentWidget(widgetPrizes);
+        connect(widgetPrizes,SIGNAL(prizeListFileNameChanged()),SLOT(checkPrizeListFileName()));
         widgetPrizes->updatePrizeListFileName(prizeListFileName);
     }
     else
@@ -185,21 +189,20 @@ void duckracer::openPrintLists()
 void duckracer::processOpenPrizeFile()
 {
     QSettings settings;
-    QString newFileName = QFileDialog::getOpenFileName(this,trUtf8("Preisliste öffnen"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),tr("Preislisten (*.prz)"));
-    if( !newFileName.isEmpty() && newFileName != prizeListFileName ) {
-        if( widgetPrizes == 0 || widgetPrizes->updatePrizeListFileName(newFileName) ) { //Only update filename if it was changed successfully
-            settings.setValue("duckracer/lastdirectory",QFileInfo(prizeListFileName).path());
-            settings.setValue("duckracer/prizefilename",prizeListFileName);
-            prizeListFileName = newFileName;
-            updateFileNameLabels();
-        }
-    }
+    QString newFileName;
+    newFileName = QFileDialog::getOpenFileName(this,trUtf8("Preisliste öffnen"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),tr("Preislisten (*.prz);;Textdateien (*.txt)"));
+    if( !newFileName.isEmpty() && newFileName != prizeListFileName && (widgetPrizes == 0 || widgetPrizes->updatePrizeListFileName(newFileName)) )
+        checkPrizeListFileName();
 }
 
-void duckracer::processOpenScanFile()
+void duckracer::processOpenScanFile(bool save)
 {
     QSettings settings;
-    QString newFileName = QFileDialog::getOpenFileName(this,trUtf8("Scan-Datei öffnen"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),tr("Scan-Dateien (*.dsc)"));
+    QString newFileName;
+    if( save )
+        newFileName = QFileDialog::getSaveFileName(this,trUtf8("Scan-Datei speichern"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),tr("Scan-Dateien (*.dsc);;Textdateien (*.txt)"));
+    else
+        newFileName = QFileDialog::getOpenFileName(this,trUtf8("Scan-Datei öffnen"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),tr("Scan-Dateien (*.dsc);;Textdateien (*.txt)"));
     if( !newFileName.isEmpty() && newFileName != scanFileName ) {
         scanFileName = newFileName;
         settings.setValue("duckracer/lastdirectory",QFileInfo(scanFileName).path());
@@ -246,9 +249,9 @@ void duckracer::updateFileNameLabels()
     }
 }
 
-QString duckracer::getPrizeListFileName(bool needed)
+QString duckracer::getPrizeListFileName(bool save)
 {
-    if( needed && prizeListFileName.isEmpty() )
+    if( save && prizeListFileName.isEmpty() )
         processOpenPrizeFile();
     return prizeListFileName;
 }
@@ -258,4 +261,15 @@ QString duckracer::getScanFileName()
     if( scanFileName.isEmpty() )
         processOpenScanFile();
     return scanFileName;
+}
+
+void duckracer::checkPrizeListFileName()
+{
+    if( prizeListFileName == widgetPrizes->currentFileName() )
+        return;
+    QSettings settings;
+    prizeListFileName = widgetPrizes->currentFileName(); //This sets prizeListFileName to one widgetPrizes is using, thus setting it to an possibly changed filename
+    settings.setValue("duckracer/lastdirectory",QFileInfo(prizeListFileName).path());
+    settings.setValue("duckracer/prizefilename",prizeListFileName);
+    updateFileNameLabels();
 }
