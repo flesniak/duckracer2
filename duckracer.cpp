@@ -5,7 +5,7 @@
 #include "wdgprintlabels.h"
 #include "wdgprintlists.h"
 
-static const char* version = "2.0";
+static const char* version = "2.0beta";
 const unsigned char homeButtonHeight = 50;
 const unsigned char homeButtonMargin = 25;
 
@@ -110,7 +110,8 @@ void duckracer::processConfigure()
     dlgConfigure *configure = new dlgConfigure(this);
     if( configure->exec() == QDialog::Accepted ) {
         //Make tabs reload the configuration
-        ;
+        if( widgetPrintLabels != 0 )
+            widgetPrintLabels->reloadPrintParameters();
     }
 }
 

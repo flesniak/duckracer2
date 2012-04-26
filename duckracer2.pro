@@ -17,7 +17,8 @@ SOURCES += main.cpp\
     wdgprizes.cpp \
     wdgprintlists.cpp \
     wdgprintlabels.cpp \
-    prizelistmodel.cpp
+    prizelistmodel.cpp \
+    scanner.cpp
 
 HEADERS  += duckracer.h \
     dlgconfigure.h \
@@ -25,4 +26,5 @@ HEADERS  += duckracer.h \
     wdgprizes.h \
     wdgprintlists.h \
     wdgprintlabels.h \
-    prizelistmodel.h
+    prizelistmodel.h \
+    scanner.h

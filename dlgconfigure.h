@@ -15,6 +15,8 @@ private:
     QLineEdit *lineEditBarcodePath;
     QLineEdit *lineEditBarcodeContPath;
     QSpinBox *spinBoxLabelSet;
+    QComboBox *comboBoxEncryption;
+    QSpinBox *spinBoxCypher;
 
     void loadConfig();
     void saveConfig();
@@ -25,6 +27,7 @@ private slots:
     void updateContPath();
     void processSelectBarcodePath();
     void processSelectBarcodeContPath();
+    void updateCypherField(int index);
 };
 
 #endif // DLGCONFIGURE_H

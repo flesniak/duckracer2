@@ -19,14 +19,14 @@ dlgConfigure::dlgConfigure(QWidget *parent) : QDialog(parent)
               << "3500k" << "4000k";
     comboBoxBaudRate->addItems(baudrates);
 
-    QPushButton *buttonReloadPorts = new QPushButton(tr("Aktualisieren"),grpConfSerial);
+    QPushButton *buttonReloadPorts = new QPushButton(tr("Ports aktualisieren"),grpConfSerial);
 
     QGridLayout *layoutGrpConfSerial = new QGridLayout(grpConfSerial);
     layoutGrpConfSerial->addWidget(labelSerialPort,0,0);
     layoutGrpConfSerial->addWidget(comboBoxSerialPort,0,1);
     layoutGrpConfSerial->addWidget(labelBaudRate,1,0);
     layoutGrpConfSerial->addWidget(comboBoxBaudRate,1,1);
-    layoutGrpConfSerial->addWidget(buttonReloadPorts,2,1);
+    layoutGrpConfSerial->addWidget(buttonReloadPorts,2,0,1,2);
 
     QGroupBox *grpConfBarcode = new QGroupBox(tr("Drucker-Steuerdateien"),this);
     QLabel *labelBarcode = new QLabel(trUtf8("Pfad zur Barcode-Datei"),grpConfBarcode);
@@ -53,13 +53,30 @@ dlgConfigure::dlgConfigure(QWidget *parent) : QDialog(parent)
     layoutGrpConfBarcode->addWidget(lineEditBarcodeContPath,3,1);
     layoutGrpConfBarcode->addLayout(layoutLabelSet,4,0,1,2);
     layoutGrpConfBarcode->setColumnStretch(1,1);
+    layoutGrpConfBarcode->setRowStretch(5,1);
+
+    QGroupBox *grpEncryption = new QGroupBox(trUtf8("Barcode-Verschlüsselung"),this);
+    QLabel *labelEncryption = new QLabel(trUtf8("Verschlüsselungstyp"),grpEncryption);
+    comboBoxEncryption = new QComboBox(this);
+    comboBoxEncryption->addItem(trUtf8("Neuer Algorithmus"));
+    comboBoxEncryption->addItem(trUtf8("Kompatiblitätsmodus"));
+    QLabel *labelCypher = new QLabel(trUtf8("Chiffre"),grpEncryption);
+    spinBoxCypher = new QSpinBox(this);
+    spinBoxCypher->setRange(1,32767);
+
+    QVBoxLayout *layoutEncryption = new QVBoxLayout(grpEncryption);
+    layoutEncryption->addWidget(labelEncryption);
+    layoutEncryption->addWidget(comboBoxEncryption);
+    layoutEncryption->addWidget(labelCypher);
+    layoutEncryption->addWidget(spinBoxCypher);
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,Qt::Horizontal,this);
 
     QGridLayout *layout = new QGridLayout(this);
     layout->addWidget(grpConfSerial,0,0);
-    layout->addWidget(grpConfBarcode,0,1);
-    layout->addWidget(buttonBox,1,0,1,2);
+    layout->addWidget(grpEncryption,1,0);
+    layout->addWidget(grpConfBarcode,0,1,2,1);
+    layout->addWidget(buttonBox,2,0,1,2);
 
     connect(buttonBox,SIGNAL(accepted()),SLOT(processOK()));
     connect(buttonBox,SIGNAL(rejected()),SLOT(reject()));
@@ -67,6 +84,7 @@ dlgConfigure::dlgConfigure(QWidget *parent) : QDialog(parent)
     connect(buttonBarcodePath,SIGNAL(clicked()),SLOT(processSelectBarcodePath()));
     connect(buttonBarcodeContPath,SIGNAL(clicked()),SLOT(processSelectBarcodeContPath()));
     connect(lineEditBarcodePath,SIGNAL(textChanged(QString)),SLOT(updateContPath()));
+    connect(comboBoxEncryption,SIGNAL(currentIndexChanged(int)),SLOT(updateCypherField(int)));
 
     loadConfig();
 }
@@ -95,6 +113,8 @@ void dlgConfigure::loadConfig()
     lineEditBarcodePath->setText(settings.value("barcode/path").toString());
     lineEditBarcodeContPath->setText(settings.value("barcode/contpath").toString());
     spinBoxLabelSet->setValue(settings.value("barcode/setsize",500).toInt());
+    comboBoxEncryption->setCurrentIndex(settings.value("barcode/encryptiontype",0).toInt());
+    spinBoxCypher->setValue(settings.value("barcode/encryptioncypher",1337).toInt());
 }
 
 void dlgConfigure::saveConfig()
@@ -105,6 +125,8 @@ void dlgConfigure::saveConfig()
     settings.setValue("barcode/path",lineEditBarcodePath->text());
     settings.setValue("barcode/contpath",lineEditBarcodeContPath->text());
     settings.setValue("barcode/setsize",spinBoxLabelSet->value());
+    settings.setValue("barcode/encryptiontype",comboBoxEncryption->currentIndex());
+    settings.setValue("barcode/encryptioncypher",spinBoxCypher->value());
 }
 
 void dlgConfigure::collectSerialPorts()
@@ -153,4 +175,9 @@ void dlgConfigure::updateContPath()
             lineEditBarcodeContPath->setText(barcodePath+barcodeContSuffix);
             return;
         }
+}
+
+void dlgConfigure::updateCypherField(int index)
+{
+    spinBoxCypher->setEnabled(index == 0);
 }
