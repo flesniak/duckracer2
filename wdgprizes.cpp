@@ -27,12 +27,12 @@ wdgPrizes::wdgPrizes(QWidget *parent) : QWidget(parent), changed(false)
     layout->addLayout(layoutButtonsUpper);
     layout->addLayout(layoutButtonsLower);
 
-    connect(buttonSaveChanges,SIGNAL(clicked()),SLOT(saveChanges()));
     connect(buttonAddRow,SIGNAL(clicked()),SLOT(processAddRow()));
     connect(buttonRemoveRow,SIGNAL(clicked()),SLOT(processRemoveRow()));
     connect(buttonMoveRowUp,SIGNAL(clicked()),SLOT(processMoveRowUp()));
     connect(buttonMoveRowDown,SIGNAL(clicked()),SLOT(processMoveRowDown()));
     connect(buttonDuplicateRow,SIGNAL(clicked()),SLOT(processDuplicateRow()));
+    connect(buttonSaveChanges,SIGNAL(clicked()),SLOT(saveChanges()));
 
     connect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),SLOT(dataChanged()));
 }

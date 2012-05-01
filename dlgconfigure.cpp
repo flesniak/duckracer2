@@ -1,4 +1,5 @@
 #include "dlgconfigure.h"
+#include "scanner.h"
 
 dlgConfigure::dlgConfigure(QWidget *parent) : QDialog(parent)
 {
@@ -12,11 +13,11 @@ dlgConfigure::dlgConfigure(QWidget *parent) : QDialog(parent)
 
     QLabel *labelBaudRate = new QLabel(tr("Baudrate"),grpConfSerial);
     comboBoxBaudRate = new QComboBox(grpConfSerial);
-    QStringList baudrates;
+    /*QStringList baudrates;
     baudrates << "50" << "75" << "110" << "134" << "150" << "200" << "300" << "600" << "1200" << "1800" << "2400"
               << "4800" << "9600" << "19.2k" << "38.4k" << "57.6k" << "115.2k" << "230.4k" << "460.8k" << "500k"
               << "576k" << "921.6k" << "1000k" << "1152k" << "1500k" << "2000k" << "2500k" << "3000k"
-              << "3500k" << "4000k";
+              << "3500k" << "4000k";*/
     comboBoxBaudRate->addItems(baudrates);
 
     QPushButton *buttonReloadPorts = new QPushButton(tr("Ports aktualisieren"),grpConfSerial);

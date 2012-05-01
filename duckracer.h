@@ -46,6 +46,7 @@ private slots:
     void processClosePrizeFile();
     void processCloseScanFile();
     void checkPrizeListFileName();
+    void checkScanFileName();
     void updateFileNameLabels();
 };
 

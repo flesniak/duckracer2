@@ -112,6 +112,8 @@ void duckracer::processConfigure()
         //Make tabs reload the configuration
         if( widgetPrintLabels != 0 )
             widgetPrintLabels->reloadPrintParameters();
+        if( widgetScan != 0 )
+            widgetScan->reloadConfiguration();
     }
 }
 
@@ -147,6 +149,8 @@ void duckracer::openScan()
         widgetScan = new wdgScan(tabWidget);
         tabWidget->addTab(widgetScan,trUtf8("Enten scannen"));
         tabWidget->setCurrentWidget(widgetScan);
+        connect(widgetScan,SIGNAL(scanFileNameChanged()),SLOT(checkScanFileName()));
+        widgetScan->updateScanFileName(scanFileName);
     }
     else
         tabWidget->setCurrentWidget(widgetScan);
@@ -272,5 +276,16 @@ void duckracer::checkPrizeListFileName()
     prizeListFileName = widgetPrizes->currentFileName(); //This sets prizeListFileName to one widgetPrizes is using, thus setting it to an possibly changed filename
     settings.setValue("duckracer/lastdirectory",QFileInfo(prizeListFileName).path());
     settings.setValue("duckracer/prizefilename",prizeListFileName);
+    updateFileNameLabels();
+}
+
+void duckracer::checkScanFileName()
+{
+    if( scanFileName == widgetPrizes->currentFileName() )
+        return;
+    QSettings settings;
+    scanFileName = widgetPrizes->currentFileName(); //This sets scanFileName to one widgetPrizes is using, thus setting it to an possibly changed filename
+    settings.setValue("duckracer/lastdirectory",QFileInfo(scanFileName).path());
+    settings.setValue("duckracer/scanfilename",scanFileName);
     updateFileNameLabels();
 }

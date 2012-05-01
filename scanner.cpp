@@ -1,16 +1,88 @@
 #include "scanner.h"
 
+#include <QFile>
+
+#include <termios.h>
+#include <fcntl.h>
+
 scanner::scanner(QObject *parent) : QThread(parent)
 {
 }
 
+void scanner::run()
+{
+    scan = true;
+
+    if( p_serialPort.isEmpty() )
+        return;
+
+    int scannerPort;
+    scannerPort = open(p_serialPort.toAscii(), O_RDONLY | O_NOCTTY | O_NDELAY);
+    if(scannerPort < 0)
+        return;
+
+    struct termios options;
+    tcgetattr(scannerPort, &options);
+    cfsetispeed(&options, p_baudRate);
+    cfsetospeed(&options, p_baudRate);
+    options.c_cflag |= (CLOCAL | CREAD);
+    if(tcsetattr(scannerPort, TCSANOW, &options) < 0) {
+        disconnect();
+        return;
+    }
+
+    QByteArray buffer;
+    char temp[256];
+    while( scan ) {
+        read(scannerPort, temp, 255);
+        buffer.append(temp);
+        if( buffer.size() >= 3 ) {
+            buffer.resize(3);
+            emit newData(buffer);
+            buffer.clear();
+        }
+        usleep(100000); //poll every 100ms
+    }
+    close(scannerPort);
+}
+
+void scanner::stop()
+{
+    scan = false;
+}
+
+void scanner::setParameters(QString serialPort, QString baudRate)
+{
+    if( isRunning() )
+        return;
+    p_serialPort = serialPort;
+    p_baudRate = baudRateToParameter(baudRate);
+}
+
+unsigned int scanner::baudRateToParameter(int index)
+{
+    if( index < 0 )
+        return 0;
+    index++; //index = 1 -> B50 = 1
+    if( index > 17 )
+        index += 9984; //index = 18 -> B57600 = 10001
+    if( index > 10017)
+        return 0; //B4000000 = 10017, more than that is invalid
+    return index;
+}
+
+unsigned int scanner::baudRateToParameter(QString baudRate)
+{
+    return baudRateToParameter(baudrates.indexOf(baudRate));
+}
+
 /*-------------------------------------------+
 | About duckracer encryption algorithms: The |
-| new method eats a 16bit-number, while the  |
+| new method eats a 16bit-integer, while the |
 | 16th bit must be 0, and outputs an array   |
 | of three printable ASCII characters        |
 | suitable for code39 barcodes.              |
-| The old, legacy algorithm is just provided |
+| The old legacy algorithm is just provided  |
 | for reference, i.e. scanning old labels.   |
 \-------------------------------------------*/
 
