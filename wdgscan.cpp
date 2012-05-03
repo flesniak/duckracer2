@@ -43,35 +43,55 @@ wdgScan::wdgScan(QWidget *parent) : QWidget(parent), changed(false), doAutosave(
 
     checkBoxAutosave = new QCheckBox(trUtf8("Automatisch speichern"),this);
     checkBoxAutosave->setToolTip(trUtf8("Neu gescannte Enten werden sofort auf die Festplatte geschrieben, um die Datensicherheit bei eventuellen Abstürzen zu gewährleisten. Dazu muss eine Datei gewählt werden."));
+    checkBoxScanner = new QCheckBox(trUtf8("Scanner verwenden"),this);
 
     QGridLayout *layout = new QGridLayout(this);
-    layout->addWidget(viewScanList,0,0,5,1);
+    layout->addWidget(viewScanList,0,0,6,1);
     layout->addWidget(labelPlace,0,1);
     layout->addWidget(labelDuck,0,2);
     layout->addWidget(editPlace,1,1);
     layout->addWidget(editDuck,1,2);
     layout->addWidget(labelHint,2,1,1,2);
     layout->addWidget(checkBoxAutosave,3,1);
+    layout->addWidget(checkBoxScanner,4,1);
     layout->addWidget(buttonCommit,3,2,2,1);
-    layout->addWidget(buttonSaveChanges,4,1);
+    layout->addWidget(buttonSaveChanges,5,1,1,2);
     layout->setRowStretch(2,1);
 
-    connect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),SLOT(dataChanged()));
-    connect(buttonSaveChanges,SIGNAL(clicked()),SLOT(saveChanges()));
     connect(scan,SIGNAL(newData(QByteArray)),SLOT(processNewData(QByteArray)));
+    connect(editDuck,SIGNAL(returnPressed()),SLOT(processCommitData()));
     connect(buttonCommit,SIGNAL(clicked()),SLOT(processCommitData()));
+    connect(buttonSaveChanges,SIGNAL(clicked()),SLOT(saveChanges()));
     connect(checkBoxAutosave,SIGNAL(toggled(bool)),SLOT(processToggleAutosave(bool)));
-    connect(viewScanList->model(),SIGNAL(dataChanged(QModelIndex,QModelIndex)),SLOT(autosave()));
+    connect(checkBoxScanner,SIGNAL(toggled(bool)),SLOT(processActivateScanner(bool)));
 
     updatePlaceEdit();
 }
 
+void wdgScan::processActivateScanner(bool active)
+{
+    if( active ) {
+        if( !scan->isRunning() )
+            scan->start();
+    }
+    else
+        scan->stop();
+}
+
 void wdgScan::processCommitData()
 {
+    if( editDuck->text().isEmpty() )
+        return;
     int temp = editDuck->text().toInt();
     if( temp < 0 || temp > 32767 )
         return;
-    model->appendPlace(temp);
+    if( model->appendPlace(temp) ) {
+        editDuck->clear();
+        autosave();
+    }
+    else
+        QMessageBox::warning(this,trUtf8("Warnung"),trUtf8("Ente wurde bereits erfasst!"));
+    editDuck->setFocus();
 }
 
 void wdgScan::reloadConfiguration()
@@ -92,6 +112,7 @@ void wdgScan::processNewData(QByteArray data)
     case 0 : ducknum = scanner::decode(data,barcodeCypher);
         break;
     case 1 : ducknum = scanner::decodeLegacy(data);
+        break;
     }
     editDuck->setText(QString::number(ducknum));
     //if( comboBoxAutoCommit.isChecked) ...
@@ -99,8 +120,13 @@ void wdgScan::processNewData(QByteArray data)
 
 void wdgScan::autosave(const QModelIndex &topLeft, const QModelIndex &)
 {
-    if( !doAutosave )
+    changed = true; //functions call autosave even if it is disabled, in this case we have to remember the changed state for promptSaveChanges
+    qDebug() << "autosave: changed = true";
+    if( !doAutosave ) {
+        qDebug() << "autosave: disabled, return";
         return;
+    }
+    qDebug() << "autosave: continue";
     if( !QFile(fileName).exists() || topLeft.row() < model->rowCount(QModelIndex())-1 ) { //if data was changed somewhere in between, we have to save everything (for simplicity)
         saveChanges();
         return;
@@ -225,7 +251,7 @@ bool wdgScan::saveChanges()
         return true; //If our data didn't change, we don't need to save and are free to i.e. load a new file
 }
 
-void wdgScan::dataChanged()
+const QString& wdgScan::currentFileName() const
 {
-    changed = true;
+    return fileName;
 }

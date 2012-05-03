@@ -11,13 +11,13 @@ class wdgScan : public QWidget
     Q_OBJECT
 public:
     explicit wdgScan(QWidget *parent = 0);
-    QString currentFileName() const;
+    const QString& currentFileName() const;
 
 public slots:
     bool updateScanFileName(QString newFileName); //returns true if change was successful (i.e. not cancelled)
     bool promptSaveChanges(); //returns true if changes were saved or discarded
     void reloadConfiguration();
-    void autosave(const QModelIndex &topLeft, const QModelIndex &);
+    void autosave(const QModelIndex &topLeft = QModelIndex(), const QModelIndex & = QModelIndex());
 
 private:
     QLineEdit *editPlace;
@@ -27,6 +27,7 @@ private:
     QPushButton *buttonSaveChanges;
     QLabel *labelHint;
     QCheckBox *checkBoxAutosave;
+    QCheckBox *checkBoxScanner;
     duckplacemodel *model;
     scanner *scan;
     QString fileName;
@@ -41,12 +42,12 @@ private:
     int currentPlace;
 
 private slots:
-    void dataChanged();
     bool saveChanges(); //returns true if changes were successfully saved
     void processNewData(QByteArray data);
     void processCommitData();
     void updatePlaceEdit();
     void processToggleAutosave(bool enabled);
+    void processActivateScanner(bool active);
 
 protected:
     void closeEvent(QCloseEvent *event);

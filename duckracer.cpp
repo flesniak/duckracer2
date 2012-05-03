@@ -281,10 +281,10 @@ void duckracer::checkPrizeListFileName()
 
 void duckracer::checkScanFileName()
 {
-    if( scanFileName == widgetPrizes->currentFileName() )
+    if( scanFileName == widgetScan->currentFileName() )
         return;
     QSettings settings;
-    scanFileName = widgetPrizes->currentFileName(); //This sets scanFileName to one widgetPrizes is using, thus setting it to an possibly changed filename
+    scanFileName = widgetScan->currentFileName(); //This sets scanFileName to one widgetPrizes is using, thus setting it to an possibly changed filename
     settings.setValue("duckracer/lastdirectory",QFileInfo(scanFileName).path());
     settings.setValue("duckracer/scanfilename",scanFileName);
     updateFileNameLabels();
