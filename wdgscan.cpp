@@ -121,12 +121,8 @@ void wdgScan::processNewData(QByteArray data)
 void wdgScan::autosave(const QModelIndex &topLeft, const QModelIndex &)
 {
     changed = true; //functions call autosave even if it is disabled, in this case we have to remember the changed state for promptSaveChanges
-    qDebug() << "autosave: changed = true";
-    if( !doAutosave ) {
-        qDebug() << "autosave: disabled, return";
+    if( !doAutosave )
         return;
-    }
-    qDebug() << "autosave: continue";
     if( !QFile(fileName).exists() || topLeft.row() < model->rowCount(QModelIndex())-1 ) { //if data was changed somewhere in between, we have to save everything (for simplicity)
         saveChanges();
         return;
@@ -162,7 +158,6 @@ void wdgScan::updatePlaceEdit()
 
 void wdgScan::closeEvent(QCloseEvent *event)
 {
-    qDebug() << "wdgScan closeEvent!";
     if( promptSaveChanges() )
         event->accept();
     else

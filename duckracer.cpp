@@ -189,6 +189,7 @@ void duckracer::openPrintLists()
         widgetPrintLists = new wdgPrintLists(tabWidget);
         tabWidget->addTab(widgetPrintLists,trUtf8("Listen drucken"));
         tabWidget->setCurrentWidget(widgetPrintLists);
+        widgetPrintLists->updateFileNames(prizeListFileName,scanFileName);
     }
     else
         tabWidget->setCurrentWidget(widgetPrintLists);
@@ -211,12 +212,8 @@ void duckracer::processOpenScanFile(bool save)
         newFileName = QFileDialog::getSaveFileName(this,trUtf8("Scan-Datei speichern"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),tr("Scan-Dateien (*.dsc);;Textdateien (*.txt)"));
     else
         newFileName = QFileDialog::getOpenFileName(this,trUtf8("Scan-Datei öffnen"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),tr("Scan-Dateien (*.dsc);;Textdateien (*.txt)"));
-    if( !newFileName.isEmpty() && newFileName != scanFileName ) {
-        scanFileName = newFileName;
-        settings.setValue("duckracer/lastdirectory",QFileInfo(scanFileName).path());
-        settings.setValue("duckracer/scanFileName",scanFileName);
-        updateFileNameLabels();
-    }
+    if( !newFileName.isEmpty() && newFileName != scanFileName && (widgetScan == 0 || widgetScan->updateScanFileName(newFileName)) )
+        checkScanFileName();
 }
 
 void duckracer::processClosePrizeFile()
@@ -229,10 +226,8 @@ void duckracer::processClosePrizeFile()
 
 void duckracer::processCloseScanFile()
 {
-    QString oldFileName = scanFileName;
-    scanFileName.clear();
-    if( true ) { //Only update filename if it was changed successfully
-        scanFileName = oldFileName;
+    if( widgetScan == 0 || widgetScan->updateScanFileName(QString()) ) { //Only update filename if it was changed successfully
+        scanFileName.clear();
         updateFileNameLabels();
     }
 }
@@ -255,6 +250,8 @@ void duckracer::updateFileNameLabels()
         labelScanFileName->setText(trUtf8("Scan-Datei: %1").arg(scanFileName));
         actionCloseScanFile->setEnabled(true);
     }
+    if( widgetPrintLists != 0 )
+        widgetPrintLists->updateFileNames(prizeListFileName,scanFileName);
 }
 
 QString duckracer::getPrizeListFileName(bool save)
