@@ -162,6 +162,7 @@ void wdgScan::updatePlaceEdit()
 
 void wdgScan::closeEvent(QCloseEvent *event)
 {
+    qDebug() << "wdgScan closeEvent!";
     if( promptSaveChanges() )
         event->accept();
     else

@@ -135,8 +135,11 @@ void duckracer::processCloseTab(int index)
             return;
         widgetPrizes = 0;
     }
-    if( closeWidget == widgetScan )
+    if( closeWidget == widgetScan ) {
+        if(!widgetScan->close())
+            return;
         widgetScan = 0;
+    }
     if( closeWidget == widgetPrintLists )
         widgetPrintLists = 0;
     tabWidget->removeTab(index);
