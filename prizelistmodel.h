@@ -17,7 +17,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     Qt::ItemFlags flags(const QModelIndex &) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role);
-    bool insertRows(int row, int count, const QModelIndex &parent);
+    bool insertRows(int row, int count, const QModelIndex &parent, const QString &value = QString());
     bool removeRows(int row, int count, const QModelIndex &parent);
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 

@@ -124,7 +124,7 @@ bool wdgPrizes::saveChanges()
 
 void wdgPrizes::processAddRow()
 {
-    if( model->insertRow(tableView->selectionModel()->selectedRows().value(0).row()) )
+    if( model->insertRows(tableView->selectionModel()->selectedRows().value(0).row(),1,QModelIndex()) )
         changed = true;
 }
 

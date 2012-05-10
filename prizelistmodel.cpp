@@ -10,15 +10,20 @@ prizelistmodel::prizelistmodel(QObject *parent) : QAbstractListModel(parent)
 
 QVariant prizelistmodel::data(const QModelIndex &index, int role) const
 {
-    if( !index.isValid() || index.row() > content->size()-1 || (role != Qt::DisplayRole && role != Qt::EditRole) )
+    if( !index.isValid() || index.row() > content->size() || (role != Qt::DisplayRole && role != Qt::EditRole) )
         return QVariant();
-    return content->at(index.row());
+    if( index.row() == content->size() )
+        return QString();
+    else
+        return content->at(index.row());
 }
 
 bool prizelistmodel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if( index.row() > content->size()-1 || value.type() != QVariant::String || role != Qt::EditRole )
+    if( index.row() > content->size() || value.type() != QVariant::String || role != Qt::EditRole )
         return false;
+    if( index.row() == content->size() )
+        return insertRows(index.row(),1,QModelIndex(),value.toString());
     (*content)[index.row()] = value.toString();
     emit dataChanged(index,index);
     return true;
@@ -26,7 +31,7 @@ bool prizelistmodel::setData(const QModelIndex &index, const QVariant &value, in
 
 int prizelistmodel::rowCount(const QModelIndex &) const
 {
-    return content->size();
+    return content->size()+1;
 }
 
 Qt::ItemFlags prizelistmodel::flags(const QModelIndex &) const
@@ -43,20 +48,17 @@ QVariant prizelistmodel::headerData(int section, Qt::Orientation orientation, in
     else //Qt::Vertical
         return section+1;
 }
-
-bool prizelistmodel::insertRows(int row, int count, const QModelIndex &parent)
+#include <QDebug>
+bool prizelistmodel::insertRows(int row, int count, const QModelIndex &parent, const QString &value)
 {
-    if( row >= content->size() || count == 0 )
+    qDebug() << "insertRows" << row << count << value;
+    if( row > content->size() || count == 0 )
         return false;
     if( row < 0 )
         row = 0;
     beginInsertRows(parent,row+1,row+count);
-    /*if( content->size() == 0 ) {
-        content->append(QString());
-        count--;
-    }*/
     for(int num = 0; num < count; num++)
-        content->insert(row+1,QString());
+        content->insert(row+1,value);
     endInsertRows();
     return true;
 }
