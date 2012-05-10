@@ -34,8 +34,8 @@ void scanner::run()
     QByteArray buffer;
     char temp[256];
     while( scan ) {
-        read(scannerPort, temp, 255);
-        buffer.append(temp);
+        int bytesRead = read(scannerPort, temp, 255);
+        buffer.append(temp,bytesRead);
         if( buffer.size() >= 3 ) {
             buffer.resize(3);
             emit newData(buffer);
