@@ -36,7 +36,7 @@ private slots:
     void processMoveRowUp();
     void processMoveRowDown();
     void processDuplicateRow();
-    void dataChanged();
+    void dataChanged(const QModelIndex& topLeft);
     bool saveChanges(); //returns true if changes were successfully saved
 
 protected:

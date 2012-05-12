@@ -105,6 +105,15 @@ duckracer::~duckracer()
     //TODO: Delete non-Qt classes?
 }
 
+void duckracer::closeEvent(QCloseEvent *event)
+{
+    if( widgetScan != 0 && !widgetScan->promptSaveChanges() )
+        return event->ignore();
+    if( widgetPrizes != 0 && !widgetPrizes->promptSaveChanges() )
+        return event->ignore();
+    event->accept();
+}
+
 void duckracer::processConfigure()
 {
     dlgConfigure *configure = new dlgConfigure(this);
@@ -204,14 +213,11 @@ void duckracer::processOpenPrizeFile()
         checkPrizeListFileName();
 }
 
-void duckracer::processOpenScanFile(bool save)
+void duckracer::processOpenScanFile()
 {
     QSettings settings;
     QString newFileName;
-    if( save )
-        newFileName = QFileDialog::getSaveFileName(this,trUtf8("Scan-Datei speichern"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),tr("Scan-Dateien (*.dsc);;Textdateien (*.txt)"));
-    else
-        newFileName = QFileDialog::getOpenFileName(this,trUtf8("Scan-Datei öffnen"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),tr("Scan-Dateien (*.dsc);;Textdateien (*.txt)"));
+    newFileName = QFileDialog::getOpenFileName(this,trUtf8("Scan-Datei öffnen"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),tr("Scan-Dateien (*.dsc);;Textdateien (*.txt)"));
     if( !newFileName.isEmpty() && newFileName != scanFileName && (widgetScan == 0 || widgetScan->updateScanFileName(newFileName)) )
         checkScanFileName();
 }
@@ -220,7 +226,7 @@ void duckracer::processClosePrizeFile()
 {
     if( widgetPrizes == 0 || widgetPrizes->updatePrizeListFileName(QString()) ) { //Only update filename if it was changed successfully
         prizeListFileName.clear();
-        updateFileNameLabels();
+        checkPrizeListFileName();
     }
 }
 
@@ -228,7 +234,7 @@ void duckracer::processCloseScanFile()
 {
     if( widgetScan == 0 || widgetScan->updateScanFileName(QString()) ) { //Only update filename if it was changed successfully
         scanFileName.clear();
-        updateFileNameLabels();
+        checkScanFileName();
     }
 }
 
@@ -254,9 +260,9 @@ void duckracer::updateFileNameLabels()
         widgetPrintLists->updateFileNames(prizeListFileName,scanFileName);
 }
 
-QString duckracer::getPrizeListFileName(bool save)
+QString duckracer::getPrizeListFileName()
 {
-    if( save && prizeListFileName.isEmpty() )
+    if( prizeListFileName.isEmpty() )
         processOpenPrizeFile();
     return prizeListFileName;
 }
@@ -270,22 +276,22 @@ QString duckracer::getScanFileName()
 
 void duckracer::checkPrizeListFileName()
 {
-    if( prizeListFileName == widgetPrizes->currentFileName() )
-        return;
     QSettings settings;
-    prizeListFileName = widgetPrizes->currentFileName(); //This sets prizeListFileName to one widgetPrizes is using, thus setting it to an possibly changed filename
-    settings.setValue("duckracer/lastdirectory",QFileInfo(prizeListFileName).path());
+    if( widgetPrizes != 0 ) {
+        prizeListFileName = widgetPrizes->currentFileName(); //This sets prizeListFileName to one widgetPrizes is using, thus setting it to an possibly changed filename
+        settings.setValue("duckracer/lastdirectory",QFileInfo(prizeListFileName).path());
+    }
     settings.setValue("duckracer/prizefilename",prizeListFileName);
     updateFileNameLabels();
 }
 
 void duckracer::checkScanFileName()
 {
-    if( scanFileName == widgetScan->currentFileName() )
-        return;
     QSettings settings;
-    scanFileName = widgetScan->currentFileName(); //This sets scanFileName to one widgetPrizes is using, thus setting it to an possibly changed filename
-    settings.setValue("duckracer/lastdirectory",QFileInfo(scanFileName).path());
+    if( widgetScan != 0 ) {
+        scanFileName = widgetScan->currentFileName(); //This sets scanFileName to one widgetPrizes is using, thus setting it to an possibly changed filename
+        settings.setValue("duckracer/lastdirectory",QFileInfo(scanFileName).path());
+    }
     settings.setValue("duckracer/scanfilename",scanFileName);
     updateFileNameLabels();
 }

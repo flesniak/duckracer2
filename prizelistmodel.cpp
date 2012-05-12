@@ -5,7 +5,6 @@
 prizelistmodel::prizelistmodel(QObject *parent) : QAbstractListModel(parent)
 {
     content = new QStringList;
-    content->append(QString());
 }
 
 QVariant prizelistmodel::data(const QModelIndex &index, int role) const
@@ -22,11 +21,14 @@ bool prizelistmodel::setData(const QModelIndex &index, const QVariant &value, in
 {
     if( index.row() > content->size() || value.type() != QVariant::String || role != Qt::EditRole )
         return false;
+    bool ok = true;
     if( index.row() == content->size() )
-        return insertRows(index.row(),1,QModelIndex(),value.toString());
-    (*content)[index.row()] = value.toString();
-    emit dataChanged(index,index);
-    return true;
+        ok = insertRows(index.row(),1,QModelIndex(),value.toString());
+    else
+        (*content)[index.row()] = value.toString();
+    if( ok )
+      emit dataChanged(index,index);
+    return ok;
 }
 
 int prizelistmodel::rowCount(const QModelIndex &) const
@@ -48,10 +50,9 @@ QVariant prizelistmodel::headerData(int section, Qt::Orientation orientation, in
     else //Qt::Vertical
         return section+1;
 }
-#include <QDebug>
+
 bool prizelistmodel::insertRows(int row, int count, const QModelIndex &parent, const QString &value)
 {
-    qDebug() << "insertRows" << row << count << value;
     if( row > content->size() || count == 0 )
         return false;
     if( row < 0 )
@@ -71,8 +72,6 @@ bool prizelistmodel::removeRows(int row, int count, const QModelIndex &parent)
     for(int num = 0; num < count; num++)
         content->removeAt(row);
     endRemoveRows();
-    if( content->isEmpty() )
-        insertRow(-1);
     return true;
 }
 
@@ -80,7 +79,6 @@ void prizelistmodel::clear()
 {
     beginResetModel();
     content->clear();
-    content->append(QString());
     endResetModel();
 }
 
@@ -88,13 +86,14 @@ void prizelistmodel::newData()
 {
     beginResetModel();
     endResetModel();
-    //emit dataChanged(createIndex(0,0),createIndex(content->size()-1,0));
 }
 
 bool prizelistmodel::moveRowDown(int row)
 {
-    if( row < 0 || row >= content->size()-1 ) //don't move lowest row
+    if( row < 0 || row >= content->size() ) //don't move the "pseudo-row"
         return false;
+    if( row == content->size()-1 ) //we can't move anything below the pseudo-row, instead we insert a blank row above
+        return insertRows(row-1,1,QModelIndex());
     content->swap(row,row+1);
     emit dataChanged(createIndex(row,0),createIndex(row+1,0));
     return true;

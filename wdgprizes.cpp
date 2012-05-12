@@ -34,7 +34,7 @@ wdgPrizes::wdgPrizes(QWidget *parent) : QWidget(parent), changed(false)
     connect(buttonDuplicateRow,SIGNAL(clicked()),SLOT(processDuplicateRow()));
     connect(buttonSaveChanges,SIGNAL(clicked()),SLOT(saveChanges()));
 
-    connect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),SLOT(dataChanged()));
+    connect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),SLOT(dataChanged(QModelIndex)));
 }
 
 void wdgPrizes::closeEvent(QCloseEvent *event)
@@ -101,9 +101,11 @@ bool wdgPrizes::saveChanges()
     if( changed ) {
         if( fileName.isEmpty() ) {
             QSettings settings;
-            fileName = QFileDialog::getSaveFileName(this,trUtf8("Preisliste speichern"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),trUtf8("Preislisten (*.prz);;Textdateien (*.txt)"));
+            fileName = QFileDialog::getSaveFileName(this,trUtf8("Preisliste speichern"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),trUtf8("Preislisten (*.prz)"));
             if( fileName.isEmpty() )
                 return false;
+            if( !fileName.endsWith(".prz") )
+                fileName.append(".prz");
             emit prizeListFileNameChanged();
         }
         QFile file(fileName);
@@ -135,7 +137,6 @@ void wdgPrizes::processRemoveRow()
     for(int index = indexList.size()-1; index >= 0; index--)
         if( model->removeRow(indexList.at(index).row()) )
             changed = true;
-    changed = true;
 }
 
 void wdgPrizes::processMoveRowUp()
@@ -167,7 +168,9 @@ QString wdgPrizes::currentFileName() const
     return fileName;
 }
 
-void wdgPrizes::dataChanged()
+void wdgPrizes::dataChanged(const QModelIndex& topLeft)
 {
     changed = true;
+    if( topLeft.row()+2 == model->rowCount(QModelIndex()) )
+        tableView->selectRow(topLeft.row()+1);
 }

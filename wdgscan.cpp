@@ -64,6 +64,7 @@ wdgScan::wdgScan(QWidget *parent) : QWidget(parent), changed(false), doAutosave(
     connect(buttonSaveChanges,SIGNAL(clicked()),SLOT(saveChanges()));
     connect(checkBoxAutosave,SIGNAL(toggled(bool)),SLOT(processToggleAutosave(bool)));
     connect(checkBoxScanner,SIGNAL(toggled(bool)),SLOT(processActivateScanner(bool)));
+    connect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),SLOT(autosave(const QModelIndex&, const QModelIndex&)));
 
     updatePlaceEdit();
 }
@@ -92,6 +93,7 @@ void wdgScan::processCommitData()
     else
         QMessageBox::warning(this,trUtf8("Warnung"),trUtf8("Ente wurde bereits erfasst!"));
     editDuck->setFocus();
+    updatePlaceEdit();
 }
 
 void wdgScan::reloadConfiguration()
@@ -118,12 +120,13 @@ void wdgScan::processNewData(QByteArray data)
     //if( comboBoxAutoCommit.isChecked) ...
 }
 
-void wdgScan::autosave(const QModelIndex &topLeft, const QModelIndex &)
+void wdgScan::autosave(const QModelIndex &topLeft, const QModelIndex &topRight)
 {
+    Q_UNUSED(topRight);
     changed = true; //functions call autosave even if it is disabled, in this case we have to remember the changed state for promptSaveChanges
     if( !doAutosave )
         return;
-    if( !QFile(fileName).exists() || topLeft.row() < model->rowCount(QModelIndex())-1 ) { //if data was changed somewhere in between, we have to save everything (for simplicity)
+    if( !QFile(fileName).exists() || topLeft.row() < model->rowCount(QModelIndex()) ) { //if data was changed somewhere in between, we have to save everything (for simplicity)
         saveChanges();
         return;
     }
@@ -153,7 +156,7 @@ void wdgScan::processToggleAutosave(bool enabled)
 
 void wdgScan::updatePlaceEdit()
 {
-    editPlace->setText(QString::number(model->rowCount(QModelIndex())));
+    editPlace->setText(QString::number(model->rowCount(QModelIndex())+1));
 }
 
 void wdgScan::closeEvent(QCloseEvent *event)
@@ -194,13 +197,12 @@ bool wdgScan::readFile() //returns true on success
     while( !stream.atEnd() ) {
         bool ok;
         int temp = stream.readLine().toInt(&ok);
-        if( !ok )
-            continue;
-            //temp = -1;
-        model->getContent()->append(temp);
+        if( ok )
+            model->getContent()->append(temp);
     }
     file.close();
     model->newData();
+    updatePlaceEdit();
     return true;
 }
 
@@ -226,9 +228,11 @@ bool wdgScan::saveChanges()
     if( changed ) {
         if( fileName.isEmpty() ) {
             QSettings settings;
-            fileName = QFileDialog::getSaveFileName(this,trUtf8("Scan-Datei speichern"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),trUtf8("Scan-Dateien (*.dsc);;Textdateien (*.txt)"));
+            fileName = QFileDialog::getSaveFileName(this,trUtf8("Scan-Datei speichern"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),trUtf8("Scan-Dateien (*.dsc)"));
             if( fileName.isEmpty() )
                 return false;
+            if( !fileName.endsWith(".dsc") )
+                fileName.append(".dsc");
             emit scanFileNameChanged();
         }
         QFile file(fileName);

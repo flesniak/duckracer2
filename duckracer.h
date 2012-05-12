@@ -20,7 +20,7 @@ public slots:
     void openManagePrizes();
     void openPrintLabels();
     void openPrintLists();
-    QString getPrizeListFileName(bool save = false); //if save is true and no file is selected, we will prompt for one
+    QString getPrizeListFileName();
     QString getScanFileName();
 
 private:
@@ -41,13 +41,16 @@ private slots:
     void processConfigure();
     void processQuit();
     void processCloseTab(int index);
-    void processOpenPrizeFile(); //prompt for open, not save, by default
-    void processOpenScanFile(bool save = false); //prompt for open, not save, by default
+    void processOpenPrizeFile();
+    void processOpenScanFile();
     void processClosePrizeFile();
     void processCloseScanFile();
     void checkPrizeListFileName();
     void checkScanFileName();
     void updateFileNameLabels();
+
+protected:
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif // DUCKRACER_H

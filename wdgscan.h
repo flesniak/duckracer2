@@ -17,7 +17,7 @@ public slots:
     bool updateScanFileName(QString newFileName); //returns true if change was successful (i.e. not cancelled)
     bool promptSaveChanges(); //returns true if changes were saved or discarded
     void reloadConfiguration();
-    void autosave(const QModelIndex &topLeft = QModelIndex(), const QModelIndex & = QModelIndex());
+    void autosave(const QModelIndex &topLeft = QModelIndex(), const QModelIndex &topRight = QModelIndex());
 
 private:
     QLineEdit *editPlace;

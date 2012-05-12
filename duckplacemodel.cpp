@@ -11,8 +11,8 @@ QVariant duckplacemodel::data(const QModelIndex &index, int role) const
 {
     if( !index.isValid() || index.row() > content->size()-1 || (role != Qt::DisplayRole && role != Qt::EditRole) )
         return QVariant();
-    if( index.row() == content->size() )
-        return QString();
+    /*if( index.row() == content->size() )
+        return QString();*/
     int temp = content->at(index.row());
     if( temp > 0 )
         return temp;
@@ -22,18 +22,18 @@ QVariant duckplacemodel::data(const QModelIndex &index, int role) const
 
 bool duckplacemodel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if( index.row() > content->size() || value.type() != QVariant::String || role != Qt::EditRole )
+    if( index.row() > content->size() || value.type() != QVariant::Int || role != Qt::EditRole )
         return false;
     bool ok;
     int temp = value.toInt(&ok);
-    if( ok && temp > 0 && temp < 32767 && !content->contains(temp) ) {
+    if( ok && temp > 0 && temp < 32768 && !content->contains(temp) ) {
         if( index.row() >= content->size() )
-            return insertRows(index.row()-1,1,QModelIndex(),temp);
-        else {
+            ok = insertRows(index.row()-1,1,QModelIndex(),temp);
+        else
             (*content)[index.row()] = temp;
-            emit dataChanged(index,index);
-            return true;
-        }
+        if( ok )
+            dataChanged(index,index);
+        return ok;
     }
     else
         return false;
@@ -41,7 +41,7 @@ bool duckplacemodel::setData(const QModelIndex &index, const QVariant &value, in
 
 int duckplacemodel::rowCount(const QModelIndex &) const
 {
-    return content->size()+1;
+    return content->size();
 }
 
 Qt::ItemFlags duckplacemodel::flags(const QModelIndex &) const
