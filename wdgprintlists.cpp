@@ -43,7 +43,6 @@ bool wdgPrintLists::updateFileNames(const QString &newPrizeListFileName, const Q
 {
     prizeListFileName = newPrizeListFileName;
     scanFileName = newScanFileName;
-
     updateCheckBoxes();
     return true;
 }
@@ -54,15 +53,11 @@ void wdgPrintLists::updateCheckBoxes()
     checkBoxDuck->setEnabled(!scanFileName.isEmpty());
     checkBoxPrize->setEnabled(!prizeListFileName.isEmpty());
     radioButtonPlace->setEnabled(checkBoxPlace->isChecked() && (!scanFileName.isEmpty() || !prizeListFileName.isEmpty()));
-    if( !radioButtonPlace->isEnabled() )
-        radioButtonPlace->setChecked(false);
     radioButtonDuck->setEnabled(checkBoxDuck->isChecked() && !scanFileName.isEmpty());
-    if( !radioButtonDuck->isEnabled() )
-        radioButtonDuck->setChecked(false);
     radioButtonPrize->setEnabled(checkBoxPrize->isChecked() && !prizeListFileName.isEmpty());
-    if( !radioButtonPrize->isEnabled() )
-        radioButtonPrize->setChecked(false);
 
     buttonPrint->setEnabled( (checkBoxPlace->isChecked() || checkBoxDuck->isChecked() || checkBoxPlace->isChecked())
-                             && (radioButtonPlace->isChecked() || radioButtonDuck->isChecked() || radioButtonPrize->isChecked()) );
+                             && ((radioButtonPlace->isEnabled() && radioButtonPlace->isChecked())
+                              || (radioButtonDuck->isEnabled() && radioButtonDuck->isChecked())
+                              || (radioButtonPrize->isEnabled() && radioButtonPrize->isChecked())) );
 }
