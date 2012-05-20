@@ -65,6 +65,7 @@ wdgPrintLabels::wdgPrintLabels(QWidget *parent) : QWidget(parent), block(false)
     QDir dirDev("/dev");
     QStringList dirFilters;
     dirFilters << "lp?";
+    dirFilters << "usblp?";
     dirDev.setNameFilters(dirFilters);
     dirDev.setFilter(QDir::Readable | QDir::Files | QDir::Drives | QDir::System);
     comboBoxLp->addItems(dirDev.entryList());
@@ -111,14 +112,14 @@ void wdgPrintLabels::processPrint()
     while( !barcodeFileStream.atEnd() ) {
         QString barcodeFileStr = barcodeFileStream.readLine();
         if( !barcodeFileStr.isEmpty() && !barcodeFileStr.startsWith(';') )
-            barcodeFirstData.append(barcodeFileStr + "\n");
+            barcodeFirstData.append(barcodeFileStr.toAscii() + "\n");
     }
     QByteArray barcodeContinueData;
     barcodeFileStream.setDevice(&barcodeContFile);
     while( !barcodeFileStream.atEnd() ) {
         QString barcodeFileStr = barcodeFileStream.readLine();
         if( !barcodeFileStr.isEmpty() && !barcodeFileStr.startsWith(';') )
-            barcodeContinueData.append(barcodeFileStr + "\n");
+            barcodeContinueData.append(barcodeFileStr.toUtf8() + "\n");
     }
     barcodeFile.close();
     barcodeContFile.close();
@@ -128,7 +129,7 @@ void wdgPrintLabels::processPrint()
 
     //Initial printer commands
     barcodeFirstData.replace("YYYY",QString::number(spinBoxYear->value()).toAscii());
-    barcodeFirstData.replace("SSSS",QString::number(currentLabel).toAscii());
+    barcodeFirstData.replace("SSSS",QString::number(currentLabel).toAscii().rightJustified(4,'0'));
     barcodeFirstData.replace("CCCC",printparameters.barcodeEncryption ? scanner::encodeLegacy(spinBoxYear->value()) : scanner::encode(currentLabel,printparameters.barcodeCipher));
     currentLabel++;
     data.append(barcodeFirstData);
@@ -137,17 +138,18 @@ void wdgPrintLabels::processPrint()
     for(;currentLabel <= (unsigned int)spinBoxLastLabel->value(); currentLabel++) {
         QByteArray temp(barcodeContinueData);
         temp.replace("YYYY",QString::number(spinBoxYear->value()).toAscii());
-        temp.replace("SSSS",QString::number(currentLabel).toAscii());
+        temp.replace("SSSS",QString::number(currentLabel).toAscii().rightJustified(4,'0'));
         temp.replace("CCCC",printparameters.barcodeEncryption ? scanner::encodeLegacy(spinBoxYear->value()) : scanner::encode(currentLabel,printparameters.barcodeCipher));
         data.append(temp);
     }
 
-    QFile printer(comboBoxLp->currentText());
+    QFile printer("/dev/"+comboBoxLp->currentText());
     if( !printer.open( QIODevice::WriteOnly ) ) {
         QMessageBox::critical(this,trUtf8("Fehler"),trUtf8("Drucker-Port %1 konnte nicht geöffnet werden").arg(comboBoxLp->currentText()));
         return;
     }
-    QDataStream printerStream(&printer);
+    QTextStream printerStream(&printer);
+    printerStream.setCodec(QTextCodec::codecForName("UTF-8"));
     printerStream << data;
     printer.close();
 }
