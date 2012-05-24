@@ -45,8 +45,8 @@ private slots:
     void processOpenScanFile();
     void processClosePrizeFile();
     void processCloseScanFile();
-    void checkPrizeListFileName();
-    void checkScanFileName();
+    void checkPrizeListFileName(const QString & = QString());
+    void checkScanFileName(const QString & = QString());
     void updateFileNameLabels();
 
 protected:

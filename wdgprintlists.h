@@ -19,11 +19,16 @@ private:
     QRadioButton *radioButtonDuck;
     QRadioButton *radioButtonPrize;
     QPushButton *buttonPrint;
+    QLineEdit *lineEditHeadline;
     QString prizeListFileName;
     QString scanFileName;
 
+    void loadSettings();
+    void saveSettings();
+
 private slots:
     void updateCheckBoxes();
+    void print();
 };
 
 #endif // WDGPRINTLISTS_H

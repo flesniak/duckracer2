@@ -210,7 +210,7 @@ void duckracer::processOpenPrizeFile()
     QString newFileName;
     newFileName = QFileDialog::getOpenFileName(this,trUtf8("Preisliste öffnen"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),tr("Preislisten (*.prz);;Textdateien (*.txt)"));
     if( !newFileName.isEmpty() && newFileName != prizeListFileName && (widgetPrizes == 0 || widgetPrizes->updatePrizeListFileName(newFileName)) )
-        checkPrizeListFileName();
+        checkPrizeListFileName(newFileName);
 }
 
 void duckracer::processOpenScanFile()
@@ -219,7 +219,7 @@ void duckracer::processOpenScanFile()
     QString newFileName;
     newFileName = QFileDialog::getOpenFileName(this,trUtf8("Scan-Datei öffnen"),settings.value("duckracer/lastdirectory",QDir::homePath()).toString(),tr("Scan-Dateien (*.dsc);;Textdateien (*.txt)"));
     if( !newFileName.isEmpty() && newFileName != scanFileName && (widgetScan == 0 || widgetScan->updateScanFileName(newFileName)) )
-        checkScanFileName();
+        checkScanFileName(newFileName);
 }
 
 void duckracer::processClosePrizeFile()
@@ -274,24 +274,28 @@ QString duckracer::getScanFileName()
     return scanFileName;
 }
 
-void duckracer::checkPrizeListFileName()
+void duckracer::checkPrizeListFileName(const QString &newFileName)
 {
     QSettings settings;
     if( widgetPrizes != 0 ) {
-        prizeListFileName = widgetPrizes->currentFileName(); //This sets prizeListFileName to one widgetPrizes is using, thus setting it to an possibly changed filename
+        prizeListFileName = widgetPrizes->currentFileName(); //This sets prizeListFileName to the one widgetPrizes is using, thus setting it to an possibly changed filename
         settings.setValue("duckracer/lastdirectory",QFileInfo(prizeListFileName).path());
     }
+    else
+        prizeListFileName = newFileName;
     settings.setValue("duckracer/prizefilename",prizeListFileName);
     updateFileNameLabels();
 }
 
-void duckracer::checkScanFileName()
+void duckracer::checkScanFileName(const QString &newFileName)
 {
     QSettings settings;
     if( widgetScan != 0 ) {
-        scanFileName = widgetScan->currentFileName(); //This sets scanFileName to one widgetPrizes is using, thus setting it to an possibly changed filename
+        scanFileName = widgetScan->currentFileName(); //This sets scanFileName to the one widgetPrizes is using, thus setting it to an possibly changed filename
         settings.setValue("duckracer/lastdirectory",QFileInfo(scanFileName).path());
     }
+    else
+        scanFileName = newFileName;
     settings.setValue("duckracer/scanfilename",scanFileName);
     updateFileNameLabels();
 }
