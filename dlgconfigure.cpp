@@ -121,7 +121,7 @@ void dlgConfigure::loadConfig()
 void dlgConfigure::saveConfig()
 {
     QSettings settings;
-    settings.setValue("serial/port",comboBoxSerialPort->currentText().append("/dev/"));
+    settings.setValue("serial/port",comboBoxSerialPort->currentText().prepend("/dev/"));
     settings.setValue("serial/baudrate",comboBoxBaudRate->currentText());
     settings.setValue("barcode/path",lineEditBarcodePath->text());
     settings.setValue("barcode/contpath",lineEditBarcodeContPath->text());
