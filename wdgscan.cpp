@@ -73,8 +73,10 @@ wdgScan::wdgScan(QWidget *parent) : QWidget(parent), changed(false), doAutosave(
 void wdgScan::processActivateScanner(bool active)
 {
     if( active ) {
-        if( !scan->isRunning() )
+        if( !scan->isRunning() ) {
+            scan->setParameters(scannerPort,scannerBaudrateString);
             scan->start();
+        }
     }
     else {
         checkBoxScanner->setEnabled(false);
