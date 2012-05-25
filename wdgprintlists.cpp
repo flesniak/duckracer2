@@ -81,7 +81,8 @@ void wdgPrintLists::print()
     painter.drawText(bounds,lineEditHeadline->text());
 
     //TABLE
-    QTextTable table;
+    QTextDocument document;
+    QTextTable table(&document);
     while( !prizeFileStream.atEnd() ) {
         table.insertColumns(0,3);
     }

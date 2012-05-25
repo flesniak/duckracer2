@@ -47,7 +47,7 @@ private slots:
     void processCommitData();
     void updatePlaceEdit();
     void processToggleAutosave(bool enabled);
-    void processActivateScanner(bool active);
+    void processActivateScanner(bool active = false); //false for end of scanner thread
 
 protected:
     void closeEvent(QCloseEvent *event);

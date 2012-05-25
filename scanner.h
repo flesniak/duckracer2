@@ -22,12 +22,14 @@ public:
     static unsigned int baudRateToParameter(int index);
     static unsigned int baudRateToParameter(QString baudRate);
     void setParameters(QString serialPort, QString baudRate);
+    const QString& error() const { return p_error; }
 
 public slots:
     void stop();
 
 private:
     QString p_serialPort;
+    QString p_error;
     int p_baudRate;
     bool scan;
 

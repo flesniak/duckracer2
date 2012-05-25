@@ -11,15 +11,20 @@ scanner::scanner(QObject *parent) : QThread(parent)
 
 void scanner::run()
 {
+    p_error.clear();
     scan = true;
 
-    if( p_serialPort.isEmpty() )
+    if( p_serialPort.isEmpty() ) {
+        p_error = trUtf8("Kein Scanner-Port angegeben");
         return;
+    }
 
     int scannerPort;
     scannerPort = open(p_serialPort.toAscii(), O_RDONLY | O_NOCTTY | O_NDELAY);
-    if(scannerPort < 0)
+    if(scannerPort < 0) {
+        p_error = trUtf8("Öffnen des Scanner-Ports %1 fehlgeschlagen").arg(p_serialPort);
         return;
+    }
 
     struct termios options;
     tcgetattr(scannerPort, &options);
@@ -28,6 +33,7 @@ void scanner::run()
     options.c_cflag |= (CLOCAL | CREAD);
     if(tcsetattr(scannerPort, TCSANOW, &options) < 0) {
         disconnect();
+        p_error = trUtf8("Konnte Portparameter nicht setzen");
         return;
     }
 
