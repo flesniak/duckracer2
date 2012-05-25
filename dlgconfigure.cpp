@@ -100,7 +100,7 @@ void dlgConfigure::loadConfig()
 {
     collectSerialPorts();
     QSettings settings;
-    QString serialPortName = settings.value("serial/port").toString();
+    QString serialPortName = settings.value("serial/port").toString().replace("/dev/",QString());
     int serialPortIndex = comboBoxSerialPort->findText(serialPortName);
     if( serialPortIndex >= 0 )
         comboBoxSerialPort->setCurrentIndex(serialPortIndex);
@@ -121,7 +121,7 @@ void dlgConfigure::loadConfig()
 void dlgConfigure::saveConfig()
 {
     QSettings settings;
-    settings.setValue("serial/port",comboBoxSerialPort->currentText());
+    settings.setValue("serial/port",comboBoxSerialPort->currentText().append("/dev/"));
     settings.setValue("serial/baudrate",comboBoxBaudRate->currentText());
     settings.setValue("barcode/path",lineEditBarcodePath->text());
     settings.setValue("barcode/contpath",lineEditBarcodeContPath->text());
