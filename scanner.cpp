@@ -1,7 +1,8 @@
 #include "scanner.h"
 
 #include <QFile>
-
+#include <QDebug>
+#include <qbytearray.h>
 #include <termios.h>
 #include <fcntl.h>
 
@@ -40,13 +41,26 @@ void scanner::run()
     QByteArray buffer;
     char temp[256];
     while( scan ) {
+        //memset(temp, '\0', strlen(temp)); // Clear temp-buffer for new read
         int bytesRead = read(scannerPort, temp, 255);
-        buffer.append(temp,bytesRead);
-        if( buffer.size() >= 3 ) {
-            buffer.resize(3);
+        if(bytesRead>0){
+            buffer.append(temp,bytesRead);
+            // Erase CR/LF's
+            buffer.replace("\xD\xA",QByteArray());
+            buffer.replace('\x83',QByteArray());
+
+            QString str;
+            for(uint a=0; a<buffer.size(); a++) {
+                str.append(QString::number((unsigned char)buffer.at(a),16)+' ');
+            }
+            qDebug()<< str;
+            qDebug()<<"Gelesen:";
+            qDebug()<<buffer;
+            qDebug()<<"Anzahl:";
+            qDebug()<<bytesRead;
             emit newData(buffer);
-            buffer.clear();
         }
+        buffer.clear();
         usleep(100000); //poll every 100ms
     }
     close(scannerPort);
