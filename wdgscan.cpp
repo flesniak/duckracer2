@@ -63,10 +63,11 @@ wdgScan::wdgScan(QWidget *parent) : QWidget(parent), changed(false), doAutosave(
     connect(buttonCommit,SIGNAL(clicked()),SLOT(processCommitData()));
     connect(buttonSaveChanges,SIGNAL(clicked()),SLOT(saveChanges()));
     connect(checkBoxAutosave,SIGNAL(toggled(bool)),SLOT(processToggleAutosave(bool)));
-    connect(checkBoxScanner,SIGNAL(toggled(bool)),SLOT(processActivateScanner(bool)));
+    connect(checkBoxScanner,SIGNAL(clicked(bool)),SLOT(processActivateScanner(bool))); //clicked(bool) does not react on setChecked(bool)
     connect(scan,SIGNAL(finished()),SLOT(processActivateScanner()));
     connect(model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),SLOT(autosave(const QModelIndex&, const QModelIndex&)));
 
+    reloadConfiguration();
     updatePlaceEdit();
 }
 
@@ -82,9 +83,10 @@ void wdgScan::processActivateScanner(bool active)
         checkBoxScanner->setEnabled(false);
         scan->stop();
         if( scan->isFinished() ) {
+            checkBoxScanner->setChecked(false);
             checkBoxScanner->setEnabled(true);
             const QString& errorstr = scan->error();
-            if( errorstr.isEmpty() )
+            if( !errorstr.isEmpty() )
                 QMessageBox::warning(this,trUtf8("Scanner-Fehler"),trUtf8("Der Scanner-Thread brach mit folgender Meldung ab:\n")+errorstr);
         }
     }
