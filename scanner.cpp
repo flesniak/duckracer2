@@ -41,23 +41,11 @@ void scanner::run()
     QByteArray buffer;
     char temp[256];
     while( scan ) {
-        //memset(temp, '\0', strlen(temp)); // Clear temp-buffer for new read
         int bytesRead = read(scannerPort, temp, 255);
-        if(bytesRead>0){
+        if( bytesRead > 0 ) {
             buffer.append(temp,bytesRead);
-            // Erase CR/LF's
             buffer.replace("\xD\xA",QByteArray());
-            buffer.replace('\x83',QByteArray());
-
-            QString str;
-            for(uint a=0; a<buffer.size(); a++) {
-                str.append(QString::number((unsigned char)buffer.at(a),16)+' ');
-            }
-            qDebug()<< str;
-            qDebug()<<"Gelesen:";
-            qDebug()<<buffer;
-            qDebug()<<"Anzahl:";
-            qDebug()<<bytesRead;
+            buffer.replace('\x83',QByteArray()); //Datalogic "ENTER" data terminator
             emit newData(buffer);
         }
         buffer.clear();
