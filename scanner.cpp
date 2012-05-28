@@ -1,7 +1,6 @@
 #include "scanner.h"
 
 #include <QFile>
-#include <QDebug>
 #include <qbytearray.h>
 #include <termios.h>
 #include <fcntl.h>
@@ -140,7 +139,7 @@ unsigned short scanner::decode(QByteArray encoded, unsigned short cypher)
 
 #include <math.h>
 
-QByteArray scanner::encodeLegacy(unsigned short decoded)
+QByteArray scanner::encodeLegacy(unsigned int decoded)
 {
     double res,erg;
     erg =((decoded*3)+1018);
@@ -150,7 +149,8 @@ QByteArray scanner::encodeLegacy(unsigned short decoded)
 
 unsigned short scanner::decodeLegacy(QByteArray encoded)
 {
-    double res;
-    res = round(((QString::fromAscii(encoded).toInt()*2)-1018)/3) ;
+    double res,temp;
+    temp= QString::fromAscii(encoded).toInt();
+    res = round(((temp*2)-1018)/3) ;
     return ( (int) res );
 }

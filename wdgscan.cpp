@@ -1,7 +1,6 @@
 #include "wdgscan.h"
 #include "duckplacemodel.h"
 #include "scanner.h"
-#include "QDebug"
 
 wdgScan::wdgScan(QWidget *parent) : QWidget(parent), changed(false), doAutosave(false), currentPlace(1)
 {

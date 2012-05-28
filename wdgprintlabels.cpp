@@ -130,7 +130,7 @@ void wdgPrintLabels::processPrint()
     //Initial printer commands
     barcodeFirstData.replace("YYYY",QString::number(spinBoxYear->value()).toAscii());
     barcodeFirstData.replace("SSSS",QString::number(currentLabel).toAscii().rightJustified(4,'0'));
-    barcodeFirstData.replace("CCCC",printparameters.barcodeEncryption ? scanner::encodeLegacy(spinBoxYear->value()) : scanner::encode(currentLabel,printparameters.barcodeCipher));
+    barcodeFirstData.replace("CCCC",printparameters.barcodeEncryption ? scanner::encodeLegacy(currentLabel) : scanner::encode(currentLabel,printparameters.barcodeCipher));
     currentLabel++;
     data.append(barcodeFirstData);
 
@@ -139,7 +139,7 @@ void wdgPrintLabels::processPrint()
         QByteArray temp(barcodeContinueData);
         temp.replace("YYYY",QString::number(spinBoxYear->value()).toAscii());
         temp.replace("SSSS",QString::number(currentLabel).toAscii().rightJustified(4,'0'));
-        temp.replace("CCCC",printparameters.barcodeEncryption ? scanner::encodeLegacy(spinBoxYear->value()) : scanner::encode(currentLabel,printparameters.barcodeCipher));
+        temp.replace("CCCC",printparameters.barcodeEncryption ? scanner::encodeLegacy(currentLabel) : scanner::encode(currentLabel,printparameters.barcodeCipher));
         data.append(temp);
     }
 

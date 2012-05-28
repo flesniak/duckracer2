@@ -15,7 +15,7 @@ class scanner : public QThread
     Q_OBJECT
 public:
     explicit scanner(QObject *parent = 0);
-    static QByteArray encodeLegacy(unsigned short decoded);
+    static QByteArray encodeLegacy(unsigned int decoded);
     static unsigned short decodeLegacy(QByteArray encoded);
     static QByteArray encode(unsigned short decoded, unsigned short cypher = 1337);
     static unsigned short decode(QByteArray encoded, unsigned short cypher = 1337);
