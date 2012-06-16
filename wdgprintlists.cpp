@@ -55,13 +55,13 @@ void wdgPrintLists::print()
         return;
     saveSettings();
 
-    QPrinter printer;
-    QPrintDialog *printDialog = new QPrintDialog(&printer,this);
+    QPrinter *printer = new QPrinter();
+    QPrintDialog *printDialog = new QPrintDialog(printer,this);
     printDialog->setWindowTitle(trUtf8("Liste drucken"));
     if( printDialog->exec() != QDialog::Accepted )
         return;
-    QPainter painter(&printer);
-    //print by place for now only
+
+    //Open needed files
     QFile scanFile(scanFileName);
     if( !scanFile.open(QFile::ReadOnly) ) {
         QMessageBox::critical(this,trUtf8("Fehler"),trUtf8("Datei %1 konnte nicht geöffnet werden!").arg(scanFileName));
@@ -75,19 +75,74 @@ void wdgPrintLists::print()
     }
     QTextStream prizeFileStream(&prizeFile);
 
-    //HEADLINE
-    QRectF bounds = painter.boundingRect(printer.pageRect(),lineEditHeadline->text());
-    bounds.moveCenter(QPointF(printer.pageRect().width()/2,bounds.height()/2));
-    painter.drawText(bounds,lineEditHeadline->text());
-
-    //TABLE
+    //Create the document to print
     QTextDocument document;
-    QTextTable table(&document);
-    while( !prizeFileStream.atEnd() ) {
-        table.insertColumns(0,3);
+    QTextCursor cursor(&document);
+
+    //Headline
+    QTextCharFormat charFormat = cursor.charFormat();
+    charFormat.setFontPointSize(16);
+    charFormat.setFontWeight(QFont::Bold);
+    cursor.setCharFormat(charFormat);
+    cursor.insertText(lineEditHeadline->text());
+
+    //Table
+    QTextTable *table = cursor.insertTable(2,checkBoxDuck->isChecked() + checkBoxPlace->isChecked() + checkBoxPrize->isChecked());
+    /*QTextFrameFormat tableFrameFormat = table->frameFormat();
+    //tableFrameFormat.setBorderBrush(blackBrush);
+    //tableFrameFormat.setRightMargin(2);
+    tableFrameFormat.setBorder(1);
+    tableFrameFormat.setBorderBrush(QBrush(Qt::black));
+    tableFrameFormat.setBorderStyle(QTextFrameFormat::BorderStyle_Inset);
+    //tableFrameFormat.setWidth(document.size().width());
+    table->setFrameFormat(tableFrameFormat);*/
+    QTextTableFormat tableFormat = table->format();
+    tableFormat.setHeaderRowCount(1);
+    tableFormat.setBorderBrush(QBrush(Qt::black));
+    tableFormat.setBorder(0.5);
+    tableFormat.setCellSpacing(0);
+    tableFormat.setCellPadding(2);
+    table->setFormat(tableFormat);
+
+    //Table Header
+    charFormat.setFontPointSize(12);
+    if( checkBoxPlace->isChecked() ) {
+        cursor.setCharFormat(charFormat);
+        cursor.insertText(trUtf8("Platzierung"));
+        cursor.movePosition(QTextCursor::NextCell);
     }
-    painter.end();
-    qDebug() << "print end";
+    if( checkBoxDuck->isChecked() ) {
+        cursor.setCharFormat(charFormat);
+        cursor.insertText(trUtf8("Enten-Nummer"));
+        cursor.movePosition(QTextCursor::NextCell);
+    }
+    if( checkBoxPrize->isChecked() ) {
+        cursor.setCharFormat(charFormat);
+        cursor.insertText(trUtf8("Preis"));
+        cursor.movePosition(QTextCursor::NextCell);
+    }
+
+    unsigned int place = 1;
+    while( !(checkBoxDuck->isChecked() && scanFileStream.atEnd()) && !(checkBoxPrize->isChecked() && prizeFileStream.atEnd()) ) { //True as long as all files to use are not at end
+        table->appendRows(1);
+        if( checkBoxPlace->isChecked() ) {
+            cursor.insertText(QString::number(place));
+            cursor.movePosition(QTextCursor::NextCell);
+        }
+        if( checkBoxDuck->isChecked() ) {
+            cursor.insertText(scanFileStream.readLine());
+            cursor.movePosition(QTextCursor::NextCell);
+        }
+        if( checkBoxPrize->isChecked() ) {
+            cursor.insertText(prizeFileStream.readLine());
+            cursor.movePosition(QTextCursor::NextCell);
+        }
+        place++;
+    }
+    table->removeRows(table->rows()-1,1); //I don't know why, but we always need an empty row, otherwise we can't fill the table, so we remove the last empty line here
+    document.print(printer);
+    prizeFile.close();
+    scanFile.close();
 }
 
 bool wdgPrintLists::updateFileNames(const QString &newPrizeListFileName, const QString &newScanFileName)
