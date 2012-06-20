@@ -26,6 +26,14 @@ private:
     void loadSettings();
     void saveSettings();
 
+    struct rowData {
+        unsigned short place;
+        unsigned short duck;
+        QString prize;
+    };
+
+    void writeTableRow(QTextCursor &cursor, rowData rd);
+
 private slots:
     void updateCheckBoxes();
     void print();

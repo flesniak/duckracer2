@@ -74,6 +74,29 @@ void wdgPrintLists::print()
         return;
     }
     QTextStream prizeFileStream(&prizeFile);
+    QList<rowData> data;
+    rowData temp;
+    temp.place = 0;
+    bool ok = true;
+    while( !(checkBoxDuck->isChecked() && scanFileStream.atEnd()) && !(checkBoxPrize->isChecked() && prizeFileStream.atEnd()) ) { //True as long as all files to use are not at end
+        temp.place++; //Always fill place, it doesn't hurt
+        if( checkBoxDuck->isChecked() ) {
+            QString str = scanFileStream.readLine();
+            temp.duck = str.toInt(&ok);
+            if( !ok ) {
+                QMessageBox::critical(this,trUtf8("Dateifehler"),trUtf8("Fehler beim Auslesen von %1.\nZeile\n%2\nkonnte nicht ausgewertet werden").arg(scanFileName).arg(str));
+                return;
+            }
+        }
+        if( checkBoxPrize->isChecked() )
+            temp.prize = prizeFileStream.readLine();
+        if( temp.prize.isEmpty() ) {
+            QMessageBox::critical(this,trUtf8("Dateifehler"),trUtf8("Fehler beim Auslesen von %1.\nZeile %2 ist leer.").arg(prizeFileStream.pos()));
+            return;
+        }
+        data.append(temp);
+    }
+
 
     //Create the document to print
     QTextDocument document;
@@ -88,20 +111,13 @@ void wdgPrintLists::print()
 
     //Table
     QTextTable *table = cursor.insertTable(2,checkBoxDuck->isChecked() + checkBoxPlace->isChecked() + checkBoxPrize->isChecked());
-    /*QTextFrameFormat tableFrameFormat = table->frameFormat();
-    //tableFrameFormat.setBorderBrush(blackBrush);
-    //tableFrameFormat.setRightMargin(2);
-    tableFrameFormat.setBorder(1);
-    tableFrameFormat.setBorderBrush(QBrush(Qt::black));
-    tableFrameFormat.setBorderStyle(QTextFrameFormat::BorderStyle_Inset);
-    //tableFrameFormat.setWidth(document.size().width());
-    table->setFrameFormat(tableFrameFormat);*/
     QTextTableFormat tableFormat = table->format();
     tableFormat.setHeaderRowCount(1);
     tableFormat.setBorderBrush(QBrush(Qt::black));
     tableFormat.setBorder(0.5);
     tableFormat.setCellSpacing(0);
     tableFormat.setCellPadding(2);
+    tableFormat.setWidth(QTextLength(QTextLength::PercentageLength,100));
     table->setFormat(tableFormat);
 
     //Table Header
@@ -122,27 +138,60 @@ void wdgPrintLists::print()
         cursor.movePosition(QTextCursor::NextCell);
     }
 
-    unsigned int place = 1;
-    while( !(checkBoxDuck->isChecked() && scanFileStream.atEnd()) && !(checkBoxPrize->isChecked() && prizeFileStream.atEnd()) ) { //True as long as all files to use are not at end
+    unsigned int sortIndex = 0;
+    while( !data.isEmpty() ) {
         table->appendRows(1);
-        if( checkBoxPlace->isChecked() ) {
-            cursor.insertText(QString::number(place));
-            cursor.movePosition(QTextCursor::NextCell);
+        if( radioButtonPlace->isChecked() ) {
+            sortIndex++;
+            for(unsigned int index = 0; index < (unsigned int)data.size(); index++)
+                if( data.at(index).place == sortIndex ) {
+                    writeTableRow(cursor,data.takeAt(index));
+                    break;
+                }
         }
-        if( checkBoxDuck->isChecked() ) {
-            cursor.insertText(scanFileStream.readLine());
-            cursor.movePosition(QTextCursor::NextCell);
+        if( radioButtonDuck->isChecked() ) {
+            bool take = true;
+            while( take ) {
+                sortIndex++;
+                for(unsigned int index = 0; index < (unsigned int)data.size(); index++)
+                    if( data.at(index).duck == sortIndex ) {
+                        writeTableRow(cursor,data.takeAt(index));
+                        take = false;
+                        break;
+                    }
+            }
         }
-        if( checkBoxPrize->isChecked() ) {
-            cursor.insertText(prizeFileStream.readLine());
-            cursor.movePosition(QTextCursor::NextCell);
+        if( radioButtonPrize->isChecked() ) {
+            QString sortString = data.first().prize;
+            sortIndex = 0;
+            for(unsigned int index = 0; index < (unsigned int)data.size(); index++)
+                if( data.at(index).prize < sortString ) {
+                    sortString = data.at(index).prize;
+                    sortIndex = index;
+                }
+            writeTableRow(cursor,data.takeAt(sortIndex));
         }
-        place++;
     }
     table->removeRows(table->rows()-1,1); //I don't know why, but we always need an empty row, otherwise we can't fill the table, so we remove the last empty line here
     document.print(printer);
     prizeFile.close();
     scanFile.close();
+}
+
+void wdgPrintLists::writeTableRow(QTextCursor &cursor, rowData rd)
+{
+    if( checkBoxPlace->isChecked() ) {
+        cursor.insertText(QString::number(rd.place));
+        cursor.movePosition(QTextCursor::NextCell);
+    }
+    if( checkBoxDuck->isChecked() ) {
+        cursor.insertText(QString::number(rd.duck));
+        cursor.movePosition(QTextCursor::NextCell);
+    }
+    if( checkBoxPrize->isChecked() ) {
+        cursor.insertText(rd.prize);
+        cursor.movePosition(QTextCursor::NextCell);
+    }
 }
 
 bool wdgPrintLists::updateFileNames(const QString &newPrizeListFileName, const QString &newScanFileName)
