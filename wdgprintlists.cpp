@@ -97,12 +97,11 @@ void wdgPrintLists::print()
         if( checkBoxPrize->isChecked() )
             temp.prize = prizeFileStream.readLine();
         if( temp.prize.isEmpty() ) {
-            QMessageBox::critical(this,trUtf8("Dateifehler"),trUtf8("Fehler beim Auslesen von %1.\nZeile %2 ist leer.").arg(prizeFileStream.pos()));
-            return;
+            temp.place--;
+            continue;
         }
         data.append(temp);
     }
-
 
     //Create the document to print
     QTextDocument document;
