@@ -210,6 +210,8 @@ bool wdgScan::readFile() //returns true on success
     while( !stream.atEnd() ) {
         bool ok;
         QString str = stream.readLine();
+        if( str.isEmpty() )
+            continue;
         if( str.contains(',') )
             str = str.split(',').last();
         int temp = str.toInt(&ok);

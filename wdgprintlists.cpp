@@ -82,6 +82,10 @@ void wdgPrintLists::print()
         temp.place++; //Always fill place, it doesn't hurt
         if( checkBoxDuck->isChecked() ) {
             QString str = scanFileStream.readLine();
+            if( str.isEmpty() ) {
+                temp.place--;
+                continue;
+            }
             if( str.contains(',') )
                 str = str.split(',').last();
             temp.duck = str.toInt(&ok);
