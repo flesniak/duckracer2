@@ -82,6 +82,8 @@ void wdgPrintLists::print()
         temp.place++; //Always fill place, it doesn't hurt
         if( checkBoxDuck->isChecked() ) {
             QString str = scanFileStream.readLine();
+            if( str.contains(',') )
+                str = str.split(',').last();
             temp.duck = str.toInt(&ok);
             if( !ok ) {
                 QMessageBox::critical(this,trUtf8("Dateifehler"),trUtf8("Fehler beim Auslesen von %1.\nZeile\n%2\nkonnte nicht ausgewertet werden").arg(scanFileName).arg(str));

@@ -209,7 +209,10 @@ bool wdgScan::readFile() //returns true on success
     model->getContent()->clear();
     while( !stream.atEnd() ) {
         bool ok;
-        int temp = stream.readLine().toInt(&ok);
+        QString str = stream.readLine();
+        if( str.contains(',') )
+            str = str.split(',').last();
+        int temp = str.toInt(&ok);
         if( ok )
             model->getContent()->append(temp);
     }
