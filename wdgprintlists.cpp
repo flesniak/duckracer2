@@ -78,7 +78,7 @@ void wdgPrintLists::print()
     rowData temp;
     temp.place = 0;
     bool ok = true;
-    while( !(checkBoxDuck->isChecked() && scanFileStream.atEnd()) && !(checkBoxPrize->isChecked() && prizeFileStream.atEnd()) ) { //True as long as all files to use are not at end
+    while( (checkBoxDuck->isChecked() ? !scanFileStream.atEnd() : true) && (checkBoxPrize->isChecked() ? !prizeFileStream.atEnd() : true) ) { //True as long as all files to use are not at end
         temp.place++; //Always fill place, it doesn't hurt
         if( checkBoxDuck->isChecked() ) {
             QString str = scanFileStream.readLine();
@@ -94,12 +94,13 @@ void wdgPrintLists::print()
                 return;
             }
         }
-        if( checkBoxPrize->isChecked() )
+        if( checkBoxPrize->isChecked() ) {
             temp.prize = prizeFileStream.readLine();
-        if( temp.prize.isEmpty() ) {
-            temp.place--;
-            continue;
-        }
+            if( temp.prize.isEmpty() ) {
+                temp.place--;
+                continue;
+            }
+	}
         data.append(temp);
     }
 
@@ -216,10 +217,11 @@ void wdgPrintLists::updateCheckBoxes()
     radioButtonDuck->setEnabled(checkBoxDuck->isChecked() && !scanFileName.isEmpty());
     radioButtonPrize->setEnabled(checkBoxPrize->isChecked() && !prizeListFileName.isEmpty());
 
-    buttonPrint->setEnabled( (checkBoxPlace->isChecked() || checkBoxDuck->isChecked() || checkBoxPlace->isChecked())
+    buttonPrint->setEnabled( (checkBoxPlace->isChecked() || checkBoxDuck->isChecked() || checkBoxPrize->isChecked())
+		             && !(checkBoxPlace->isChecked() && !checkBoxDuck->isChecked() && !checkBoxPrize->isChecked())
                              && ((radioButtonPlace->isEnabled() && radioButtonPlace->isChecked())
-                              || (radioButtonDuck->isEnabled() && radioButtonDuck->isChecked())
-                              || (radioButtonPrize->isEnabled() && radioButtonPrize->isChecked())) );
+                             || (radioButtonDuck->isEnabled() && radioButtonDuck->isChecked())
+                             || (radioButtonPrize->isEnabled() && radioButtonPrize->isChecked())) );
 }
 
 void wdgPrintLists::loadSettings()

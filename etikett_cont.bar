@@ -1,0 +1,12 @@
+; TYPE: FORMAT -> 30x50 2 of same labels for Duckracer RT76
+; this file containes subsequent commands to be sent to a printer (here: Apollo 4)
+; after etikett.txt has been sent, so the commands just updates
+; changing texts on the barcode (SSSS and CCCC) after init. This
+; speeds up Pritnting a much. If your printer doesn't support such
+; func. just make etikett.txt and etikettcont.txt the same
+; commands starting with ";" won't be sent to the printer
+; duckracer ignores lines with leading ;
+R TEXT1;SSSS
+R BAR1;CCCC
+R JAHR;5.Entenrennen RT76 YYYY
+A 2
