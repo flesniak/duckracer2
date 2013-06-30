@@ -4,6 +4,7 @@
 #include <qbytearray.h>
 #include <termios.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 scanner::scanner(QObject *parent) : QThread(parent)
 {
