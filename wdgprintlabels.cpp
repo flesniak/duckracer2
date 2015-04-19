@@ -63,12 +63,17 @@ wdgPrintLabels::wdgPrintLabels(QWidget *parent) : QWidget(parent), block(false)
     QLabel *labelLp = new QLabel(trUtf8("Drucker wählen"),grpLp);
     comboBoxLp = new QComboBox(grpLp);
     QDir dirDev("/dev");
+    QDir dirDevUsb("/dev/usb");
     QStringList dirFilters;
     dirFilters << "lp?";
     dirFilters << "usblp?";
-    dirDev.setNameFilters(dirFilters);
-    dirDev.setFilter(QDir::Readable | QDir::Files | QDir::Drives | QDir::System);
-    comboBoxLp->addItems(dirDev.entryList());
+    const QDir::Filters filt = QDir::Readable | QDir::Files | QDir::Drives | QDir::System;
+    QStringList devItems = dirDev.entryList(dirFilters,filt);
+    devItems.replaceInStrings(QRegExp("^"),dirDev.path()+"/");
+    QStringList devUsbItems = dirDevUsb.entryList(dirFilters,filt);
+    devUsbItems.replaceInStrings(QRegExp("^"),dirDevUsb.path()+"/");
+    comboBoxLp->addItems(devItems);
+    comboBoxLp->addItems(devUsbItems);
 
     QHBoxLayout *layoutLp = new QHBoxLayout(grpLp);
     layoutLp->addWidget(labelLp);
