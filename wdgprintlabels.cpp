@@ -148,7 +148,7 @@ void wdgPrintLabels::processPrint()
         data.append(temp);
     }
 
-    QFile printer("/dev/"+comboBoxLp->currentText());
+    QFile printer(comboBoxLp->currentText());
     if( !printer.open( QIODevice::WriteOnly ) ) {
         QMessageBox::critical(this,trUtf8("Fehler"),trUtf8("Drucker-Port %1 konnte nicht geöffnet werden").arg(comboBoxLp->currentText()));
         return;
